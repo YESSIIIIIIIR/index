@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LookMatch: твой стиль и твоя пара</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Unbounded:wght@800&family=Playfair+Display:ital,wght@1,900&family=Caveat:wght@700&family=Press+Start+2P&family=Rubik+Mono+One&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#ffa94d">
+<link rel="icon" href="icon.svg">
+<style>
+:root{--paper:#fdeadc;--card:#fff4ea;--ink:#2e3d4f;--orange:#ffa94d;--coral:#ff7b6b;--pink:#ffb3b8;--soft:rgba(46,61,79,.12)}
+@media (prefers-color-scheme:dark){:root{--paper:#2a1d18;--card:#38271f;--ink:#fdeadc;--orange:#ffb454;--coral:#ff8a7a;--pink:#b5586a;--soft:rgba(253,234,220,.18)}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:500 17px/1.5 Manrope,system-ui,sans-serif;padding-bottom:60px}
+h1,h2{font-family:Manrope,sans-serif;font-weight:800;margin:0}
+h1{font-size:clamp(34px,8vw,52px);line-height:1.05;letter-spacing:-.02em}
+h2{font-size:21px;line-height:1.25;margin-bottom:14px}
+p{margin:0 0 12px}
+main{max-width:760px;margin:0 auto;padding:0 16px}
+.hero{background:linear-gradient(180deg,#fdb44b 0,#ffd49a 65%,var(--paper) 100%);color:#2e3d4f;text-align:center;padding:38px 16px 40px;border-radius:0 0 44px 44px}
+.hero .sub{font-size:clamp(20px,4.5vw,28px);font-weight:700;margin:6px 0 26px}
+.hero .note{color:#2e3d4f}
+.c{justify-content:center}
+#file{position:absolute;opacity:0;width:1px;height:1px}
+#drop{display:block;width:210px;height:210px;margin:0 auto 28px;border-radius:50%;cursor:pointer;overflow:hidden;
+  background:radial-gradient(circle at 33% 28%,rgba(255,255,255,.55) 0 7%,transparent 8%),radial-gradient(circle,#5b4350 0 14%,#2b232b 15% 32%,#6a5160 33% 44%,#241d24 45% 70%,#4a3a46 71% 100%);
+  box-shadow:0 0 0 14px rgba(255,255,255,.55),0 0 0 28px rgba(255,179,184,.4),0 16px 40px rgba(120,60,60,.3)}
+#drop:has(img){background:#fff}
+#drop:focus-within{outline:4px solid #2e3d4f;outline-offset:30px}
+#dropText{display:block;width:100%;height:100%}
+#drop img{width:100%;height:100%;object-fit:cover;display:block}
+button,.chip{font:700 16px Manrope,sans-serif;color:var(--ink);background:#fff;border:2px solid var(--soft);border-radius:999px;padding:9px 18px;cursor:pointer}
+@media (prefers-color-scheme:dark){button,.chip{background:#4a352b}}
+.hero button,.hero .chip{color:#2e3d4f;background:rgba(255,255,255,.75)}
+.chip[aria-pressed=true]{background:linear-gradient(90deg,var(--orange),var(--coral));color:#fff;border-color:transparent}
+.go{background:linear-gradient(90deg,var(--orange),var(--coral));color:#fff;border-color:transparent;box-shadow:0 8px 20px rgba(255,123,107,.35)}
+.hero .go{color:#fff;background:linear-gradient(90deg,var(--orange),var(--coral))}
+.go.big{font-size:20px;padding:18px 38px;margin-top:8px}
+.go:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible{outline:3px solid #2e3d4f;outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.box{background:var(--card);border-radius:28px;padding:22px;margin:22px 0;box-shadow:0 10px 30px rgba(255,150,100,.18)}
+.note{font-size:14px;opacity:.8}
+#status{font-weight:700;min-height:1.5em;margin:10px 0}
+.sec{margin-top:26px}
+.sec span{font:500 14px Manrope,sans-serif;opacity:.7;margin-left:6px}
+input[type=text],select{font:500 16px Manrope,sans-serif;color:var(--ink);background:#fff;border:2px solid var(--soft);border-radius:999px;padding:10px 16px;min-width:0;flex:1 1 180px}
+@media (prefers-color-scheme:dark){input[type=text],select{background:#4a352b}}
+select{flex:0 0 auto}
+input[type=text]:focus-visible,select:focus-visible{outline:3px solid var(--coral);outline-offset:2px}
+a{color:var(--coral);font-weight:700}
+.rt{text-align:center;font-size:clamp(26px,6vw,34px)}
+.rhead{display:flex;align-items:center;gap:22px;justify-content:center;margin:18px 0 14px}
+#myPhoto{width:104px;height:104px;border-radius:28px;overflow:hidden;flex:none;display:grid;place-items:center;background:linear-gradient(135deg,var(--orange),var(--coral));color:#fff;font:800 44px Manrope,sans-serif;box-shadow:0 0 0 6px rgba(255,255,255,.8),0 0 0 14px rgba(255,179,184,.55)}
+#myPhoto img{width:100%;height:100%;object-fit:cover}
+.topn{font-weight:800;font-size:clamp(20px,5vw,28px);line-height:1.1;text-transform:uppercase}
+.mid{text-align:center}
+.pcs{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:22px}
+.pc{position:relative;border-radius:26px;padding:100px 16px 16px;min-height:270px;color:#fff;background:var(--g);display:flex;flex-direction:column;justify-content:flex-end;box-shadow:0 10px 24px rgba(120,60,60,.25)}
+.pct{position:absolute;top:12px;right:12px;background:var(--orange);color:#fff;border-radius:14px;padding:6px 10px;font-weight:800;font-size:22px;line-height:1;text-align:center}
+.pct small{display:block;font-size:10px;font-weight:600;margin-top:3px}
+.pcn{font-weight:800;font-size:22px;line-height:1.15;text-shadow:0 1px 6px rgba(0,0,0,.3)}
+.pcd{font-size:13px;line-height:1.35;margin:6px 0 12px;text-shadow:0 1px 5px rgba(0,0,0,.35)}
+.pbtn{display:block;text-align:center;background:linear-gradient(90deg,var(--orange),var(--coral));color:#fff;border-radius:999px;padding:11px;text-decoration:none;font-weight:800}
+.bar{display:grid;grid-template-columns:170px 1fr 52px;gap:10px;align-items:center;margin:9px 0}
+.bar .t{height:16px;border-radius:999px;background:var(--soft);overflow:hidden}
+.bar .t i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--orange),var(--coral));width:0;transition:width .6s}
+.bar b{text-align:right;font-weight:800}
+.tag{display:inline-block;background:linear-gradient(90deg,var(--orange),var(--coral));color:#fff;font-weight:800;font-size:14px;padding:5px 13px;border-radius:999px;margin:0 6px 6px 0}
+.tips{border-top:2px solid var(--soft);padding-top:14px;margin-top:16px}
+.share button{font-size:15px;padding:9px 14px}
+#pairOut{font-weight:700}
+.chip .x{margin-left:8px;opacity:.7}
+.hide{display:none}
+@media (max-width:520px){.bar{grid-template-columns:1fr 46px}.bar .t{grid-column:1/3;order:3}#drop{width:180px;height:180px}}
+@media (prefers-reduced-motion:reduce){.bar .t i{transition:none}}
+.hs{font:500 14px Manrope,sans-serif;opacity:.7;margin-left:6px}
+.sw{display:flex;height:36px}.sw i{flex:1}
+/* Vibe Check */
+details.fam{border-top:2px solid var(--soft);padding:12px 0}
+details.fam summary{font-weight:800;font-size:18px;cursor:pointer}
+details.fam summary:focus-visible{outline:3px solid var(--coral);outline-offset:3px;border-radius:8px}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:12px}
+.vc{background:var(--paper);border-radius:22px;overflow:hidden;border:3px solid transparent;display:flex;flex-direction:column}
+.vc.on{border-color:var(--coral)}
+.vb{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.vb p{margin:0;font-size:15px;line-height:1.4;flex:1}
+.vb button{align-self:flex-start;font-size:14px;padding:7px 14px}
+.vres{display:flex;gap:14px;align-items:flex-start;margin:14px 0}
+.vres .sw{flex:none;width:64px;height:96px;flex-direction:column;border-radius:18px;overflow:hidden}
+.vres p{margin:4px 0}
+/* Битва луков */
+.duel{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:14px 0}
+.slot{position:relative;display:grid;place-items:center;aspect-ratio:3/4;border-radius:26px;border:3px dashed var(--soft);background:var(--paper);cursor:pointer;overflow:hidden;text-align:center;font-weight:800;padding:10px}
+.slot input{position:absolute;opacity:0;width:1px;height:1px}
+.slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.slot:focus-within{outline:3px solid var(--coral);outline-offset:3px}
+.slot.has{border-style:solid;border-color:transparent}
+.slot small{display:block;font-weight:500;opacity:.7;font-size:13px}
+.ab{position:absolute;top:10px;left:10px;z-index:1;min-width:34px;height:34px;border-radius:12px;display:grid;place-items:center;background:#fff;color:#2e3d4f;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.vs{font-weight:800;font-size:20px}
+.verdict{background:linear-gradient(90deg,#ffb454,#ff9a8a);color:#2e3d4f;border-radius:22px;padding:16px 18px;margin:8px 0 14px}
+.verdict .vt{font-weight:800;font-size:26px;line-height:1.1;margin-bottom:4px}
+.verdict p{margin:0}
+/* Парные образы */
+.cpfig{max-width:340px;margin:12px auto}
+.cpfig svg{width:100%;height:auto;display:block}
+a.chip{display:inline-block;text-decoration:none;font-weight:700;color:var(--ink)}
+@media (max-width:520px){.duel{gap:6px}.vgrid{grid-template-columns:1fr}}
+/* Секретный вайб */
+.mys-in{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.seal{display:block;width:100%;border:0;border-radius:28px;padding:34px 20px;text-align:center;color:#fff;background:linear-gradient(135deg,#2e1a3f,#6b2d7a 55%,#ff7b6b);box-shadow:0 12px 30px rgba(107,45,122,.35);font:800 22px/1.2 Manrope,sans-serif;cursor:pointer}
+.seal .q{display:block;font-size:72px;line-height:1;margin-bottom:10px}
+.seal small{display:block;font-weight:600;font-size:15px;opacity:.85;margin-top:8px}
+.seal:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.mys{border-radius:28px;padding:22px;background:linear-gradient(160deg,#2e1a3f,#4b2a63);color:#fdf3ff}
+.mys h3{font:800 clamp(24px,5.5vw,32px)/1.12 Manrope,sans-serif;margin:4px 0 14px}
+.mys a{color:#ffd1a6}
+.mys button{background:#fff;color:#2e1a3f;border-color:transparent}
+.mys .go{background:linear-gradient(90deg,var(--orange),var(--coral));color:#fff}
+.mys h3:focus{outline:none}
+.mrow{margin:12px 0;padding:12px 14px;border-radius:18px;background:rgba(255,255,255,.1)}
+.mq{font-size:15px;opacity:.9}
+.mw{font-weight:800;font-size:18px;margin:4px 0 8px}
+.mb{height:10px;border-radius:999px;background:rgba(255,255,255,.18);overflow:hidden}
+.mb i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#ffb454,#ff7b6b)}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.rv{animation:rise .5s both}
+@media (prefers-reduced-motion:reduce){.rv{animation:none}}
+/* Сторис-студия */
+.studio{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:22px;align-items:start}
+.stage{position:sticky;top:12px}
+.stage canvas{display:block;width:100%;height:auto;border-radius:22px;box-shadow:0 14px 34px rgba(60,30,40,.3);background:#ddd}
+.ctl{margin:0 0 16px}
+.ctl>b{display:block;font-size:15px;margin-bottom:8px}
+.ctl .row{margin-bottom:0}
+.swatches{display:flex;gap:10px;flex-wrap:wrap}
+.swb{width:46px;height:46px;border-radius:50%;padding:0;border:3px solid var(--card);box-shadow:0 0 0 2px var(--soft)}
+.swb[aria-pressed=true]{box-shadow:0 0 0 4px var(--coral)}
+.swb:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+@media (max-width:640px){.studio{grid-template-columns:1fr}.stage{position:static;order:-1;max-width:300px;margin:0 auto}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <h1>LookMatch</h1>
+  <p class="sub">Твой стиль + Твоя пара</p>
+  <input id="file" type="file" accept="image/*">
+  <label id="drop" for="file" aria-label="Выбрать фото"><span id="dropText"></span></label>
+  <p class="note" style="margin-bottom:8px">Кого ищешь?</p>
+  <div class="row c" id="who">
+    <button class="chip" aria-pressed="true" data-g="f">Девушку</button>
+    <button class="chip" aria-pressed="false" data-g="m">Парня</button>
+  </div>
+  <button class="go big" id="run">Загрузи лук и найди пару</button>
+  <p class="note" style="margin-top:12px">Анализ в браузере. Безопасно.</p>
+  <p id="status" role="status"></p>
+  <div class="row c"><button id="startQuiz">Нет фото? Ответь на 8 вопросов</button><button id="startQuiz2">Подробный тест на 20 вопросов</button></div>
+  <p class="note" style="margin:18px 0 8px">Новые режимы</p>
+  <div class="row c"><button data-go="vibe">Vibe Check</button><button data-go="battle">Битва луков</button><button data-go="couple">Парные образы</button><button data-go="mystery">Секретный вайб</button><button data-go="stories">Карточки для сторис</button><button data-go="shop">Шопинг на Куфаре</button></div>
+  <div class="row c hide" id="tgBotRow" style="margin:18px 0 0"><a class="chip go" id="tgBotLink" href="#" target="_blank" rel="noopener">Открыть в Телеграм-боте</a></div>
+</header>
+<main>
+<section class="box">
+  <h2>Или выбери стиль сам<span>до 3 штук, можно без фото</span></h2>
+  <div class="row" id="manual"></div>
+  <div class="row"><button class="go" id="runManual" disabled>Посчитать по выбранным</button></div>
+  <h2 class="sec">Увлечения<span>чем больше отметишь, тем точнее подборка. Свои можно привязать к стилям</span></h2>
+  <div class="row" id="hobbies"></div>
+  <div class="row"><input type="text" id="hobIn" maxlength="30" placeholder="Своё увлечение, например: стендап" aria-label="Своё увлечение"><button id="hobAdd">Добавить</button></div>
+  <div class="row hide" id="bind" style="flex-direction:column;align-items:flex-start">
+    <p id="bindT" style="margin:0"></p>
+    <div class="row" id="bindChips"></div>
+    <div class="row"><button class="go" id="bindOk">Привязать</button><button id="bindSkip">Пропустить</button></div>
+  </div>
+</section>
+<section class="box hide" id="quizBox">
+  <p class="note" id="qNum"></p>
+  <h2 id="qText"></h2>
+  <div id="qOpts"></div>
+  <div class="row"><button id="qBack">Назад</button></div>
+</section>
+
+<section class="box hide" id="res">
+  <h2 class="rt">Результаты мэтча</h2>
+  <div class="rhead"><div id="myPhoto"></div><div><div class="note">Твой стиль:</div><div class="topn" id="topName"></div></div></div>
+  <div id="mine"></div>
+  <div class="row" style="margin-top:12px"><button id="fix">Это не мой стиль, поправить</button></div>
+  <h2 class="rt" style="margin-top:26px">Твоя идеальная пара</h2>
+  <div class="pcs" id="cards"></div>
+  <h2>Все совпадения</h2>
+  <div id="bars"></div>
+  <div class="row"><input type="text" id="city" maxlength="40" placeholder="Твой город для поиска мест на карте" aria-label="Город"></div>
+  <div id="tips"></div>
+  <p class="note" style="margin-top:12px">Цифры про ТикТок взяты из открытых публикаций 2021–2023 годов разных авторов, а не из официальной статистики приложения. Просмотры хэштегов постоянно растут и у разных источников отличаются.</p>
+  <div class="tips"><h2 style="font-size:17px">Поделиться</h2>
+    <div class="row share"><button class="go" id="shShare">Картинка для сторис</button><button data-go="stories">Свой дизайн карточки</button><button id="shTg">Отправить в Телеграм</button><button id="shCopy">Скопировать ссылку</button><select id="shTheme" aria-label="Тема картинки"><option value="light">Светлая</option><option value="dark">Тёмная</option><option value="pink">Розовая</option></select></div>
+    <p class="note" id="shNote"></p></div>
+  <div class="tips"><h2 style="font-size:17px">Нас двое</h2>
+    <p class="note">Выбери до 3 стилей конкретного человека и сравни с твоим.</p>
+    <div class="row" id="pairChips"></div>
+    <div class="row"><button id="pairGo" disabled>Посчитать совместимость</button></div>
+    <p id="pairOut"></p>
+    <h2 style="font-size:17px;margin-top:16px">Сравнить с другом</h2>
+    <div class="row"><input type="text" id="friendLink" placeholder="Вставь ссылку друга" aria-label="Ссылка друга"><button id="friendGo">Сравнить</button></div>
+    <p id="friendOut"></p></div>
+  <p class="note" style="margin-top:16px">Это игра, а не наука. Нейросеть оценивает только одежду и образ на фото, а не тебя. Реальные знакомства зависят от места, настроения и смелости сказать «привет».</p>
+</section>
+
+<section class="box" id="vibe">
+  <h2>Vibe Check<span class="hs">33 подстиля с описаниями</span></h2>
+  <p class="note">Выбери до 3 эстетик или пройди тест: он покажет, какой вайб ближе тебе по характеру.</p>
+  <div class="row"><button class="go" id="vibeQ">Тест на эстетику, 8 вопросов</button><button id="vibeQ2">Подробный, 20 вопросов</button></div>
+  <p class="note" id="vibeSt" role="status"></p>
+  <div id="vibeOut" class="hide"></div>
+  <div id="vibeFam"></div>
+</section>
+
+<section class="box" id="battle">
+  <h2>Битва луков<span class="hs">загрузи два образа, ИИ выберет круче</span></h2>
+  <p class="note" style="margin-bottom:8px">Для чего образ?</p>
+  <div class="row" id="occ">
+    <button class="chip" aria-pressed="true" data-o="date">Свидание</button>
+    <button class="chip" aria-pressed="false" data-o="study">Учёба</button>
+    <button class="chip" aria-pressed="false" data-o="party">Вечеринка</button>
+  </div>
+  <div class="duel">
+    <label class="slot" for="fA"><b class="ab">А</b><input id="fA" type="file" accept="image/*"><span id="sA">Лук А<small>нажми, чтобы загрузить</small></span></label>
+    <span class="vs" aria-hidden="true">VS</span>
+    <label class="slot" for="fB"><b class="ab">Б</b><input id="fB" type="file" accept="image/*"><span id="sB">Лук Б<small>нажми, чтобы загрузить</small></span></label>
+  </div>
+  <div class="row"><button class="go" id="duelGo" disabled>Кто круче?</button></div>
+  <p id="duelSt" role="status" class="note"></p>
+  <div id="duelOut" class="hide"></div>
+  <p class="note">Фото остаются в твоём браузере. Нейросеть оценивает одежду и образ, а не человека.</p>
+</section>
+
+<section class="box" id="couple">
+  <h2>Парные образы<span class="hs">как два стиля смотрятся вместе</span></h2>
+  <div class="row">
+    <select id="cpA" aria-label="Твой стиль"></select>
+    <select id="cpB" aria-label="Стиль партнёра"></select>
+  </div>
+  <p class="note" style="margin-top:-6px">Слева ты, справа партнёр. Твой стиль подставится сам после результата мэтча.</p>
+  <div class="row"><button class="go" id="cpGo" disabled>Собрать парный лук</button></div>
+  <div id="cpOut" class="hide"></div>
+</section>
+
+<section class="box" id="mystery">
+  <h2>Секретный вайб<span class="hs">Mystery Match: пару выбирает случай, а не стиль</span></h2>
+  <p class="note">Вытяни конверт и узнай, кто твой партнёр по вайбу и кто кого переспорит в забавных ситуациях. Пол партнёра берётся из переключателя «Кого ищешь?» вверху страницы. Если ввести имена, для этой пары результат всегда будет одинаковым.</p>
+  <div class="mys-in"><input type="text" id="mysA" maxlength="24" placeholder="Твоё имя, по желанию" aria-label="Твоё имя"><input type="text" id="mysB" maxlength="24" placeholder="Имя второго человека, по желанию" aria-label="Имя второго человека"></div>
+  <div class="row"><button class="go" id="mysGo">Вытянуть секретный вайб</button></div>
+  <div id="mysOut" aria-live="polite"></div>
+  <p class="note" style="margin-top:12px">Это игра. Партнёр и ситуации выбираются случайно, ничего не анализируется.</p>
+</section>
+
+<section class="box" id="shop">
+  <h2>Шопинг на Куфаре<span class="hs">найти вещи для своего стиля недорого</span></h2>
+  <div class="row"><select id="shopSel" aria-label="Стиль для поиска вещей"></select></div>
+  <div id="shopOut"></div>
+  <div class="row" style="margin-top:12px"><input type="text" id="shopQ" maxlength="60" placeholder="Своя вещь, например: чёрный тренч" aria-label="Что искать на Куфаре"><button class="go" id="shopGo">Искать на Куфаре</button></div>
+  <p class="note">Куфар не отвечает за товар. Смотри вещь при встрече, не отправляй предоплату незнакомым людям.</p>
+</section>
+<section class="box" id="stories">
+  <h2>Карточки для сторис<span class="hs">стильная картинка для Instagram Stories и TikTok</span></h2>
+  <div class="studio">
+    <div>
+      <div class="ctl"><b>Что на карточке</b><div class="row" id="stMode"></div></div>
+      <div class="ctl hide" id="stTextWrap"><b>Твоя надпись</b><div class="row"><input type="text" id="stText" maxlength="60" placeholder="Например: ночной диджей" aria-label="Надпись на карточке"></div></div>
+      <div class="ctl"><b>Шрифт</b><div class="row" id="stFont"></div></div>
+      <div class="ctl"><b>Фон</b><div class="swatches" id="stBg"></div></div>
+      <div class="ctl"><b>Формат</b><div class="row" id="stFmt"></div></div>
+      <div class="ctl"><b>Подпись внизу</b><div class="row"><input type="text" id="stHandle" maxlength="30" placeholder="@твой_ник, по желанию" aria-label="Подпись внизу карточки"></div></div>
+      <div class="row"><button class="go" id="stShareBtn">Поделиться</button><button id="stSaveBtn">Скачать PNG</button></div>
+      <p class="note" id="stDemo"></p>
+      <p class="note" id="stNote" role="status"></p>
+    </div>
+    <div class="stage"><canvas id="storyCv" width="1080" height="1920" role="img" aria-label="Предпросмотр карточки"></canvas></div>
+  </div>
+</section>
+</main>
+
+<script type="module">
+import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+env.allowLocalModels = false;
+
+// traits: мрачность, бунт, спорт, формальность, творчество, мягкость
+const S = {
+  alt:    {n:['альтушка','альт-парень'], me:'альт / неформал', t:[.8,.7,.1,.1,.8,.2], clip:'a person with alternative style, dyed hair, piercings, dark layered clothes', place:'концерты, тату-студии, рок-бары, барахолки', wear:'многослойность, кольца и цепи, тяжёлые ботинки, один яркий акцент'},
+  goth:   {n:['готка','гот'], me:'гот', t:[1,.5,0,.2,.7,.2], clip:'a goth person in all black clothes with dark makeup', place:'готик-вечеринки, кладбищенские парки, кино-клубы', wear:'чёрное в разных фактурах, кружево или кожа, серебро'},
+  punk:   {n:['панкушка','панк'], me:'панк', t:[.6,1,.2,0,.6,0], clip:'a punk person with a leather jacket, band patches and spiky hair', place:'панк-гиги, сквоты, дворовые концерты', wear:'косуха, клетка, нашивки, берцы'},
+  sport:  {n:['спортивная девушка','спортсмен'], me:'спортивный', t:[0,.2,1,.2,.1,.4], clip:'a person in sportswear, athletic clothes and sneakers', place:'зал, пробежки, секции, турниры', wear:'чистые кроссовки, худи прямого кроя, лёгкая спортивная куртка'},
+  classic:{n:['девушка в классике','парень в классике'], me:'классика / офис', t:[0,0,.2,1,.2,.4], clip:'a person in smart elegant formal clothes, shirt and coat', place:'кафе, выставки, нетворкинг, театры', wear:'посадка по фигуре, пальто, аккуратная обувь, один нестандартный элемент'},
+  street: {n:['уличная девушка','стритвир-парень'], me:'стритвир', t:[.2,.5,.5,.1,.6,.3], clip:'a person in streetwear, oversized hoodie, cap and sneakers', place:'уличные маркеты, баскетбольные площадки, ночные тусовки', wear:'оверсайз, редкие кроссовки, кепка, сумка через плечо'},
+  geek:   {n:['гик-девушка','гик'], me:'гик / аниме', t:[.2,.1,0,.2,.7,.6], clip:'a nerdy person with glasses and a graphic t-shirt', place:'аниме-фесты, настолки, игровые клубы, гик-кафе', wear:'футболка с принтом, очки, косплей-детали, рюкзак со значками'},
+  boho:   {n:['бохо-девушка','бохо-парень'], me:'бохо / хиппи', t:[.1,.3,.1,.1,1,.7], clip:'a bohemian hippie person with flowy clothes, natural fabrics and handmade jewelry', place:'фестивали, ярмарки, йога, арт-пространства', wear:'лён и хлопок, украшения ручной работы, тёплые земляные цвета'},
+  preppy: {n:['девушка-преппи','парень-преппи'], me:'преппи', t:[0,0,.4,.8,.2,.5], clip:'a preppy person in a polo, sweater and neat casual clothes', place:'универ, клубы по интересам, лекции, кофейни', wear:'поло или свитер, чиносы, лоферы, чистые цвета'},
+  skater: {n:['скейтерша','скейтер'], me:'скейтер', t:[.3,.7,.7,0,.5,.2], clip:'a skater with baggy pants, vans shoes and a skateboard', place:'скейт-парки, видеопокатушки, уличные кафе', wear:'широкие штаны, ваны, мешковатая футболка, бини'},
+  tomboy: {n:['томбой','парень в андрогинном стиле'], me:'томбой', t:[.2,.5,.6,.2,.4,.3], clip:'a tomboy in baggy jeans, a loose t-shirt and sneakers, boyish masculine style', place:'скейт-споты, спортплощадки, настолки, поездки на великах', wear:'мешковатые джинсы, мужские рубашки и майки, кеды, кепка'},
+  femboy: {n:['девушка-андрогин','фембой'], me:'фембой', t:[.1,.4,0,.2,.8,1], clip:'a femboy, a soft feminine style on a masculine person, skirt, pastel colors, cute accessories', place:'аниме-фесты, арт-тусовки, кофейни, квир-вечеринки', wear:'пастель, юбка или шорты, чокер, кроп-топ, милые аксессуары'},
+  grunge: {n:['грязнулька (гранж-девушка)','гранж-парень'], me:'грязнулька / гранж', t:[.7,.8,.2,0,.6,.1], clip:'a grunge person with messy hair, ripped jeans, worn flannel shirt and smudged eyeliner, disheveled look', place:'гаражные концерты, секонды, ночные кафе, подвальные бары', wear:'потёртые джинсы, фланелька, растянутый свитер, небрежный макияж'},
+  eboy:   {n:['e-girl','e-boy'], me:'e-girl / e-boy', t:[.7,.6,.1,.1,.8,.4], clip:'an e-girl or e-boy with chains, striped shirt, colored hair and graphic eyeliner', place:'стримы, игровые вечеринки, аниме-фесты, ночные дискорд-встречи', wear:'полосатый лонгслив, цепи, яркие пряди, графичные стрелки'},
+  emo:    {n:['эмо-девушка','эмо-парень'], me:'эмо / скин', t:[.9,.6,0,.1,.7,.4], clip:'an emo or scene person with a side fringe, black band t-shirt, skinny jeans and studded belt', place:'рок-клубы, концерты, тусовки у метро, рисовальные кружки', wear:'чёлка набок, чёрные футболки с группами, узкие джинсы, браслеты'},
+  darkacad:{n:['девушка в дарк-академии','парень в дарк-академии'], me:'дарк-академия', t:[.6,.1,0,.7,.7,.4], clip:'a dark academia person in a tweed blazer, turtleneck, plaid skirt or trousers and brown tones', place:'библиотеки, старые кофейни, музеи, книжные клубы', wear:'твидовый пиджак, водолазка, клетка, коричневые и тёмно-зелёные тона'},
+  cottage:{n:['коттеджкор-девушка','коттеджкор-парень'], me:'коттеджкор', t:[0,0,0,.2,.8,1], clip:'a cottagecore person in a floral prairie dress, linen, knitted cardigan and soft countryside style', place:'фермерские рынки, пикники, садоводство, маркеты хендмейда', wear:'платья с цветами, льняные рубашки, вязаные кардиганы, плетёные сумки'},
+  y2k:    {n:['y2k-девушка','y2k-парень'], me:'Y2K', t:[.1,.4,.1,.1,.8,.6], clip:'a person in Y2K style with low rise jeans, butterfly clips, baby tee and shiny accessories', place:'ночные клубы, торговые центры, поп-вечеринки, караоке', wear:'низкая посадка, маленькие топы, заколки-бабочки, блестящие акценты'},
+  coquette:{n:['кокетка','парень в стиле коккет'], me:'коккет / бантики', t:[0,0,0,.4,.7,1], clip:'a coquette style person with bows, ribbons, lace, pink pastel colors and ballet flats', place:'кофейни, выставки, балетные студии, фотопрогулки', wear:'банты, кружево, пудровые цвета, балетки, жемчуг'},
+  oldmoney:{n:['девушка в old money','парень в old money'], me:'old money / тихая роскошь', t:[0,0,.3,1,.1,.5], clip:'a person in quiet luxury old money style, cashmere sweater, beige trench coat and neutral tones', place:'выставки, яхт-клубы, винные бары, гольф и теннис', wear:'кашемир, бежевый и белый, тренч, минимум логотипов, часы'},
+  gorp:   {n:['горпкор-девушка','горпкор-парень'], me:'горпкор / туристический', t:[.1,.2,.8,.1,.3,.4], clip:'a person in gorpcore outdoor clothing, technical jacket, hiking boots and a backpack', place:'походы, скалодромы, палаточные выезды, велопоездки', wear:'мембранная куртка, треккинговые ботинки, флис, функциональный рюкзак'},
+  siren:  {n:['office siren','парень в строгом стиле'], me:'office siren', t:[.5,.3,0,.7,.4,.3], clip:'an office siren in a fitted pencil skirt, blazer, glasses and sleek dark hair', place:'бизнес-встречи, ужины в ресторанах, коктейльные бары, конференции', wear:'пиджак, юбка-карандаш, очки, строгая причёска, тёмные тона'},
+  softboy:{n:['софтгёрл','софтбой'], me:'софтбой / софтгёрл', t:[.1,.1,.1,.3,.7,.9], clip:'a softboy in a pastel knit sweater, cardigan and gentle romantic style', place:'кофейни, книжные, выставки, уютные кинотеатры', wear:'мягкие свитера, кардиганы, светлые тона, серебряные цепочки'},
+  cleangirl:{n:['clean girl','clean boy'], me:'clean girl / clean boy', t:[0,0,.3,.5,.2,.7], clip:'a clean girl aesthetic person with slicked back hair, minimal makeup, neutral basic clothes and gold jewelry', place:'пилатес, кофейни, зелёные смузи-бары, коворкинги', wear:'белая футболка, нейтральные тона, золотые мини-украшения, аккуратный пучок'},
+  balletcore:{n:['балеткор-девушка','парень-танцор'], me:'балеткор', t:[0,0,.2,.4,.7,1], clip:'a balletcore person in a wrap cardigan, tulle skirt, leg warmers and ballet flats', place:'балетные студии, театры, выставки, танцевальные классы', wear:'кофта-запах, пачка или тюль, гетры, балетки, лента в волосах'},
+  sleaze: {n:['indie sleaze девушка','indie sleaze парень'], me:'indie sleaze', t:[.5,.7,0,.1,.8,.2], clip:'an indie sleaze person with messy party look, skinny jeans, leather jacket, smudged makeup and flash photography vibe', place:'инди-вечеринки, бары, гаражные концерты, ночные фотосессии', wear:'узкие джинсы, кожанка, блёстки, небрежный макияж, винтажные очки'},
+  kawaii: {n:['каваи-девушка','каваи-парень'], me:'каваи', t:[0,.1,0,.1,.8,1], clip:'a kawaii person in cute pastel clothes, bows, plush accessories and bright colors', place:'аниме-фесты, кафе с десертами, ярмарки милых вещей, караоке', wear:'пастель, бантики, плюшевые брелки, яркие носочки, милые заколки'},
+  gyaru:  {n:['гяру','парень в стиле гяру'], me:'гяру', t:[.1,.5,.1,.2,.7,.5], clip:'a gyaru fashion person with bleached hair, tanned skin, big lashes and glamorous colorful outfit', place:'караоке, ТЦ, ночные клубы, фотобудки', wear:'осветлённые волосы, длинные ресницы, яркие аксессуары, платформа'},
+  cyber:  {n:['киберпанк-девушка','киберпанк-парень'], me:'киберпанк / cybercore', t:[.7,.5,.1,.1,.9,.1], clip:'a cyberpunk person with neon colors, futuristic tech clothing, reflective accessories and LED lights', place:'гик-клубы, электронные вечеринки, хакатоны, игровые арены', wear:'неоновые акценты, чёрная техничная одежда, светящиеся детали, массивные ботинки'},
+  witchy: {n:['ведьмочка','witchy-парень'], me:'witchy / ведьмочка', t:[.8,.2,0,.1,.9,.6], clip:'a witchy person in dark flowy clothes, crystals, rings, long layered necklaces and mystical style', place:'таро-встречи, эзотерические ярмарки, лес, свечные вечера', wear:'длинные юбки, много колец, кристаллы, тёмные оттенки, плащ'},
+  fairy:  {n:['фейрикор-девушка','фейри-парень'], me:'fairycore', t:[0,0,0,.1,1,1], clip:'a fairycore person with flower crown, sparkly wings, pastel ethereal dress and natural woodland style', place:'парки, лесные пикники, фотопрогулки, ярмарки рукоделия', wear:'лёгкие ткани, цветочные венки, блёстки, пастельные платья'},
+  pastelgoth:{n:['пастель-готка','пастель-гот'], me:'pastel goth', t:[.7,.4,0,.1,.8,.8], clip:'a pastel goth person with pink and lilac hair, black dress, pastel accessories and dark cute style', place:'арт-вечеринки, аниме-фесты, кофейни, тематические маркеты', wear:'чёрное с пастелью, платформы, пастельные пряди, милые аксессуары с черепами'},
+  techwear:{n:['техвир-девушка','техвир-парень'], me:'techwear', t:[.6,.4,.6,.2,.5,.1], clip:'a techwear person in black utility clothing with straps, cargo pants and waterproof jacket', place:'ночные прогулки, электронные клубы, велоклубы, дизайн-пространства', wear:'карго, ремни, непромокаемые ткани, чёрный монохром, функциональные сумки'},
+  rave:   {n:['рейвер-девушка','рейвер'], me:'рейвер', t:[.4,.6,.3,0,.8,.3], clip:'a raver in neon festival clothes, fishnets, glitter, holographic accessories and platform boots', place:'фестивали, клубы, афтепати, уличные рейвы', wear:'неон, сетка, голографика, блёстки, удобная обувь для танцев'},
+  hiphop: {n:['хип-хоп девушка','хип-хоп парень'], me:'хип-хоп', t:[.2,.6,.5,.1,.6,.2], clip:'a hip hop style person with baggy jeans, big chains, snapback cap and sneakers', place:'рэп-баттлы, студии звукозаписи, баскетбольные площадки, концерты', wear:'мешковатые джинсы, массивные цепи, кепка, чистые кроссовки'},
+  retro:  {n:['ретро-девушка','ретро-парень'], me:'ретро / винтаж', t:[.1,.2,.1,.3,.8,.6], clip:'a person in vintage retro seventies style, flared pants, retro prints and thrifted clothing', place:'блошки, винил-магазины, ретро-кафе, антикварные лавки', wear:'клёш, ретро-принты, найденные на барахолке куртки, винтажные очки'},
+  normcore:{n:['нормкор-девушка','нормкор-парень'], me:'нормкор', t:[0,0,.2,.4,.1,.6], clip:'a person in normcore plain basic clothes, simple t-shirt, jeans and sneakers without logos', place:'обычные кафе, парки, коворкинги, друзья друзей', wear:'простая футболка, джинсы, чистые кеды, никаких логотипов'},
+  mobwife:{n:['mob wife','парень в стиле mob'], me:'mob wife', t:[.4,.5,0,.6,.4,.1], clip:'a mob wife aesthetic person in a fur coat, animal print, gold jewelry and big sunglasses', place:'рестораны, бары, вечеринки, шоппинг-центры', wear:'шуба или объёмная куртка, леопард, золото, большие очки, красная помада'},
+  moto:   {n:['байкерша','байкер'], me:'байкер / мото', t:[.6,.7,.5,.2,.3,0], clip:'a biker in a leather motorcycle jacket, boots and helmet, rough rider style', place:'мотосходки, автосервисы, придорожные кафе, мотофестивали', wear:'кожаная куртка, ботинки, перчатки, чёрные джинсы'}
+};
+const DESC={
+ alt:'Собирательный образ неформала: тёмные многослойные вещи, украшения, яркие или крашеные волосы. Главное, чтобы выглядело не как у всех.',
+ goth:'Чёрный цвет, кружево, кожа, серебро и драматичный макияж. Эстетика ночи, готической музыки и старых кладбищ.',
+ punk:'Косуха, нашивки, клетка, берцы. Протест, живая музыка и DIY: вещи переделывают сами.',
+ sport:'Удобная спортивная одежда и чистые кроссовки. Образ человека, который живёт в движении.',
+ classic:'Посадка по фигуре, рубашки, пальто, аккуратная обувь. Строгий и собранный вид без лишнего.',
+ street:'Оверсайз, худи, кроссовки, кепки. Уличная культура, где важны силуэт и редкие вещи.',
+ geek:'Футболки с принтами, очки, значки, рюкзаки с героями. Любовь к играм, аниме, комиксам и настолкам.',
+ boho:'Лён, хлопок, украшения ручной работы, земляные оттенки. Свободный творческий стиль фестивалей и ярмарок.',
+ preppy:'Поло, свитера, чиносы, лоферы. Аккуратный университетский вид в светлых чистых цветах.',
+ skater:'Широкие штаны, мешковатые футболки, ваны. Расслабленный образ людей со скейтом и друзей из парка.',
+ tomboy:'Мешковатые джинсы, майки, мужские рубашки и кеды. Мальчишеский, спокойный и практичный стиль.',
+ femboy:'Мягкая, нежная эстетика на мужском образе: пастель, юбки, чокеры, милые аксессуары.',
+ grunge:'Потёртые джинсы, фланелевая рубашка, растянутый свитер, небрежная причёска и смазанная подводка. Нарочито неряшливо.',
+ eboy:'Цепи, полосатые лонгсливы, яркие пряди и графичные стрелки. Родом из игр, аниме и ТикТока.',
+ emo:'Чёлка набок, чёрные футболки групп, узкие джинсы и браслеты. Эмоциональный стиль из рок-сцены.',
+ darkacad:'Твидовые пиджаки, водолазки, клетка и тёмные земляные тона. Эстетика старых библиотек и университетов.',
+ cottage:'Цветочные платья, лён, вязаные кардиганы. Мечта о жизни в деревне: сад, пироги и корзинки.',
+ y2k:'Низкая посадка, маленькие топы, заколки-бабочки и блеск. Привет из нулевых.',
+ coquette:'Банты, ленты, кружево, жемчуг и пудровые цвета. Очень девичья, нежная эстетика.',
+ oldmoney:'Кашемир, тренч, белый и бежевый, никаких больших логотипов. Тихая роскошь, которая не кричит.',
+ gorp:'Мембранные куртки, треккинговые ботинки, флис. Походная одежда, ставшая городским стилем.',
+ siren:'Пиджак, юбка-карандаш, очки, гладкая причёска. Строгий офисный образ с уверенным характером.',
+ softboy:'Мягкие свитера, кардиганы, светлые тона и тонкие цепочки. Спокойный романтик, который читает и слушает инди.',
+ cleangirl:'Гладкий пучок, лёгкий макияж, белая футболка, золотые мелочи. Аккуратная простота и ощущение свежести.',
+ balletcore:'Кофта-запах, тюль, гетры и балетки. Образ, вдохновлённый разминкой в балетной студии.',
+ sleaze:'Узкие джинсы, кожаные куртки, блёстки и смазанный макияж. Хаотичные вечеринки 2000-х и вспышка на фото.',
+ kawaii:'Пастель, бантики, плюшевые брелки и яркие носки. Японская милота в самом концентрированном виде.',
+ gyaru:'Светлые волосы, длинные ресницы, яркие аксессуары и платформа. Японская модная субкультура про глэм и смелость.',
+ cyber:'Неон, чёрная техничная одежда, светящиеся детали и массивные ботинки. Будущее из фильмов и видеоигр.',
+ witchy:'Длинные юбки, много колец, кристаллы и тёмные оттенки. Эстетика ведьмы, таро и свечей.',
+ fairy:'Лёгкие ткани, венки, блёстки и цветы. Сказочный лесной образ, будто с картинки.',
+ pastelgoth:'Чёрная одежда с пастельными акцентами: розовые пряди, милые черепа, платформы. Тёмное, но нежное.',
+ techwear:'Карго, ремни, непромокаемые ткани и чёрный монохром. Функциональная одежда будущего.',
+ rave:'Неон, сетка, голографика, блёстки и удобная обувь для танцев. Всё для ночи на фестивале.',
+ hiphop:'Мешковатые джинсы, массивные цепи, кепки и чистые кроссовки. Уличная культура рэпа и баттлов.',
+ retro:'Клёш, винтажные принты, вещи с барахолок. Образ, будто из семидесятых.',
+ normcore:'Простая футболка, джинсы, чистые кеды и ни одного логотипа. Стиль, где нарочно ничего не выделяется.',
+ mobwife:'Шуба или объёмная куртка, леопард, золото и тёмные очки. Дерзкий образ с намёком на итальянское кино.',
+ moto:'Кожаная куртка, ботинки, перчатки и чёрные джинсы. Дух дороги, мотоциклов и дальних поездок.'
+};
+const SEARCH={alt:'alt',goth:'goth',punk:'punk',sport:'sporty',classic:'classic elegant',street:'streetwear',geek:'nerdy geek',boho:'boho',preppy:'preppy',skater:'skater',tomboy:'tomboy',femboy:'femboy',grunge:'grunge',eboy:'e-girl e-boy',emo:'emo',darkacad:'dark academia',cottage:'cottagecore',y2k:'y2k',coquette:'coquette',oldmoney:'old money',gorp:'gorpcore',siren:'office siren',softboy:'softboy',cleangirl:'clean girl',balletcore:'balletcore',sleaze:'indie sleaze',kawaii:'kawaii',gyaru:'gyaru',cyber:'cyberpunk',witchy:'witchy',fairy:'fairycore',pastelgoth:'pastel goth',techwear:'techwear',rave:'rave',hiphop:'hip hop',retro:'70s vintage',normcore:'normcore',mobwife:'mob wife',moto:'biker'};
+const ex=(k,g)=>{const q=encodeURIComponent(SEARCH[k]+' outfit'+(g===undefined?'':g===0?' women':' men'));
+  return `<p class="note" style="margin:6px 0 0">Примеры образов: <a href="https://www.pinterest.com/search/pins/?q=${q}" target="_blank" rel="noopener">Pinterest</a>, <a href="https://www.tiktok.com/search?q=${q}" target="_blank" rel="noopener">TikTok</a>, <a href="https://www.google.com/search?tbm=isch&q=${q}" target="_blank" rel="noopener">Google Картинки</a></p>`;};
+const TT={
+ y2k:'около 11,4 млрд просмотров #y2k (Piglet in Bed, 2022). Среди британских студентов Y2K выбрали 35% (PrettyLittleThing, 2023)',
+ cottage:'12–16 млрд просмотров #cottagecore (Synthesio, ProBuilder)',
+ darkacad:'около 5–6 млрд просмотров #darkacademia (ProBuilder, PrettyLittleThing, 2023)',
+ coquette:'более 5,7 млрд просмотров по данным Grazia, поиски в Pinterest выросли почти на 10 000% за год',
+ oldmoney:'запрос quiet luxury набрал более 35 млрд просмотров (Urban Expressions). В опросе студентов Британии old money выбрали 29% (PrettyLittleThing, 2023)',
+ siren:'хэштег #officesiren встречается более чем в 80 000 постов (Urban Expressions)',
+ goth:'готик-эстетика собрала более 10 млрд просмотров суммарно (блог Dyerbolical)',
+ grunge:'в опросе студентов Британии grunge выбрали 23% (PrettyLittleThing, 2023), он остаётся одним из самых стойких трендов'
+};
+const TN=['мрачность','бунтарство','спортивность','строгость','творчество','мягкость'];
+function why(k,mine){
+  const tot=mine.reduce((s,[,p])=>s+p,0);
+  const tu=[0,1,2,3,4,5].map(i=>mine.reduce((s,[m,p])=>s+p*S[m].t[i],0)/tot);
+  const c=tu.map((v,i)=>[i,Math.min(v,S[k].t[i])]).filter(([,m])=>m>=.45).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([i])=>TN[i]);
+  return c.length?`Вас сближает: ${c.join(' и ')}.`:'Вы разные, поэтому сработают контраст и общие увлечения.';
+}
+const keys = Object.keys(S);
+const cmp = (a,b)=>{const d=Math.hypot(...S[a].t.map((v,i)=>v-S[b].t[i]));return Math.round(14+80*Math.pow(Math.max(0,1-d/2.45),1.6));};
+
+let gender='f', file=null, manual=null, clf=null;
+const $=id=>document.getElementById(id), st=$('status');
+
+document.querySelectorAll('#who .chip').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#who .chip').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  gender=b.dataset.g; if(window._last) show(window._last,true);
+});
+const HG={
+ 'Музыка':{
+  'музыка и концерты':['alt','goth','punk','emo','eboy','grunge','sleaze','hiphop'],
+  'рок и метал':['goth','punk','emo','alt','moto','grunge'],
+  'панк и хардкор':['punk','grunge','skater'],
+  'рэп и хип-хоп':['hiphop','street','skater'],
+  'k-pop':['kawaii','y2k','softboy','gyaru','eboy'],
+  'инди и джаз':['softboy','retro','darkacad','sleaze','boho'],
+  'классическая музыка':['classic','balletcore','darkacad','oldmoney'],
+  'электронная музыка и клубы':['rave','cyber','techwear','y2k'],
+  'игра на гитаре':['alt','punk','emo','sleaze','retro'],
+  'диджеинг':['rave','cyber','techwear','street']},
+ 'Спорт и движение':{
+  'спорт и зал':['sport','gorp','tomboy','cleangirl','techwear'],
+  'бег':['sport','gorp','cleangirl'],
+  'йога и пилатес':['cleangirl','boho','witchy','balletcore'],
+  'скейт и BMX':['skater','street','tomboy','grunge','hiphop'],
+  'велосипед':['gorp','techwear','skater','normcore'],
+  'танцы':['y2k','street','siren','balletcore','rave','hiphop'],
+  'единоборства':['sport','tomboy','punk','moto'],
+  'скалолазание и горы':['gorp','techwear','tomboy'],
+  'сноуборд и сёрф':['skater','street','gorp','retro'],
+  'футбол и командные игры':['sport','street','hiphop','tomboy']},
+ 'Игры и гик-культура':{
+  'игры':['geek','eboy','femboy','cyber','normcore'],
+  'настолки и DnD':['geek','darkacad','witchy','fairy'],
+  'аниме и косплей':['geek','femboy','eboy','y2k','kawaii','gyaru','softboy'],
+  'комиксы и манга':['geek','kawaii','eboy','femboy'],
+  'программирование':['geek','cyber','techwear','normcore'],
+  'стримы и YouTube':['eboy','geek','street','y2k']},
+ 'Творчество':{
+  'рисование и арт':['boho','alt','femboy','coquette','fairy','sleaze','pastelgoth'],
+  'фото и видео':['boho','y2k','coquette','darkacad','sleaze','retro'],
+  'писательство и стихи':['darkacad','softboy','witchy','fairy','emo'],
+  'вязание и рукоделие':['cottage','boho','fairy','coquette'],
+  'керамика и гончарка':['boho','cottage','normcore','retro'],
+  'шитьё и свой дизайн одежды':['sleaze','y2k','alt','retro'],
+  'театр и музеи':['balletcore','classic','darkacad','oldmoney'],
+  'книги':['darkacad','geek','cottage','softboy','witchy'],
+  'кино':['darkacad','alt','goth','retro','softboy']},
+ 'Образ жизни':{
+  'мода и шопинг':['y2k','oldmoney','siren','coquette','cleangirl','gyaru','mobwife'],
+  'бьюти и макияж':['gyaru','coquette','siren','kawaii','y2k'],
+  'тату и пирсинг':['alt','punk','goth','grunge','moto','emo'],
+  'вечеринки и тусовки':['rave','y2k','gyaru','sleaze','mobwife'],
+  'путешествия':['boho','gorp','oldmoney','retro','normcore'],
+  'походы':['gorp','boho','cottage','fairy','techwear'],
+  'кофе и готовка':['cottage','boho','preppy','cleangirl','normcore'],
+  'садоводство и растения':['cottage','fairy','boho','gorp'],
+  'животные':['cottage','normcore','boho','tomboy'],
+  'таро и эзотерика':['witchy','fairy','pastelgoth','goth'],
+  'мотоциклы и авто':['moto','techwear','hiphop','punk'],
+  'винтаж и секонды':['retro','sleaze','grunge','oldmoney','boho'],
+  'волонтёрство и экология':['boho','gorp','normcore','cottage'],
+  'бизнес и карьера':['classic','oldmoney','siren','preppy','cleangirl']}
+};
+const H={};Object.values(HG).forEach(g=>Object.assign(H,g));
+const PRESET=new Set(Object.keys(H));
+const KW=[
+ [/стендап|юмор|мем|комед/,['geek','street','normcore']],
+ [/шахмат|настол|днд|dnd|головоломк/,['geek','darkacad','normcore']],
+ [/таро|астро|магия|ведьм|эзотер|ритуал/,['witchy','fairy','pastelgoth']],
+ [/вяз|шить|шитьё|рукодел|хенд|керамик|гончар/,['cottage','boho','fairy']],
+ [/авто|машин|тюнинг|мото|байк|гонк/,['moto','techwear','hiphop']],
+ [/рэп|хип.?хоп|бит|баттл|граффити/,['hiphop','street','skater']],
+ [/техно|рейв|диджей|dj|клуб/,['rave','cyber','techwear']],
+ [/йога|медит|пилатес|здоров/,['boho','cleangirl','witchy']],
+ [/бег|футбол|баскет|плаван|трен|кроссфит|бокс|единоборств|волейбол|теннис/,['sport','gorp','cleangirl','tomboy']],
+ [/кпоп|k.?pop|корей|дорам/,['kawaii','y2k','softboy','gyaru']],
+ [/рисова|худож|скетч|иллюстр|дизайн|дизайн/,['boho','alt','fairy','femboy']],
+ [/программ|кодинг|код|it|хакатон|робот/,['geek','cyber','techwear','normcore']],
+ [/театр|балет|опер|музей|выставк/,['balletcore','classic','darkacad','oldmoney']],
+ [/винил|антиквар|ретро|секонд|барахолк/,['retro','sleaze','oldmoney']],
+ [/выпечк|кулинар|кофе|чай|вин/,['cottage','cleangirl','preppy']],
+ [/природ|лес|кемпинг|рыбалк|охот|садовод|огород|цветы/,['cottage','gorp','boho','fairy']],
+ [/гитар|барабан|группа|вокал|петь|пение/,['alt','punk','emo','sleaze','retro']],
+ [/косплей|ролевк|фэнтези|толкин/,['geek','femboy','eboy','witchy']]
+];
+const hobs=new Set(), custom=[], picked=new Set(), bpicked=new Set();
+let pend=null;
+const redo=()=>{if(window._last)show(window._last,true);};
+
+$('manual').innerHTML = keys.map(k=>`<button class="chip" aria-pressed="false" data-k="${k}" title="${DESC[k]}">${S[k].me}</button>`).join('');
+$('manual').onclick=e=>{const k=e.target.dataset.k; if(!k)return;
+  if(picked.has(k))picked.delete(k); else if(picked.size<3)picked.add(k); else return;
+  e.target.setAttribute('aria-pressed',picked.has(k));
+  $('runManual').disabled=!picked.size;};
+$('runManual').onclick=()=>{const p={}; picked.forEach(k=>p[k]=1/picked.size); show(p);};
+$('fix').onclick=()=>$('manual').scrollIntoView({behavior:'smooth',block:'center'});
+
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+const linked=n=>(H[n]||[]).map(k=>S[k].me).join(', ');
+const drawHobbies=()=>{
+  $('hobbies').innerHTML=Object.entries(HG).map(([g,items])=>`<b style="flex-basis:100%;margin-top:8px">${g}</b>`+Object.keys(items).map(n=>`<button class="chip" aria-pressed="${hobs.has(n)}" data-h="${esc(n)}" title="${esc(linked(n))}">${esc(n)}</button>`).join('')).join('')+
+    custom.map(n=>`<button class="chip" aria-pressed="${hobs.has(n)}" data-h="${esc(n)}" title="${H[n]?esc(linked(n)):'не привязано к стилям'}">${esc(n)}<span class="x" data-del="${esc(n)}" title="Убрать">×</span></button>`).join('');
+};
+$('hobbies').onclick=e=>{
+  const del=e.target.dataset.del;
+  if(del){const i=custom.indexOf(del); if(i>-1)custom.splice(i,1); hobs.delete(del); delete H[del]; drawHobbies(); redo(); return;}
+  const b=e.target.closest('[data-h]'); if(!b)return;
+  const n=b.dataset.h; hobs.has(n)?hobs.delete(n):hobs.add(n); drawHobbies(); redo();};
+
+const closeBind=()=>{$('bind').classList.add('hide'); pend=null; bpicked.clear();};
+const openBind=n=>{pend=n; bpicked.clear();
+  $('bindT').textContent=`К каким стилям относится «${n}»? Выбери до 3, и такие люди получат бонус к шансу.`;
+  $('bindChips').innerHTML=keys.map(k=>`<button class="chip" aria-pressed="false" data-k="${k}" title="${DESC[k]}">${S[k].me}</button>`).join('');
+  $('bind').classList.remove('hide');};
+$('bindChips').onclick=e=>{const k=e.target.dataset.k; if(!k)return;
+  if(bpicked.has(k))bpicked.delete(k); else if(bpicked.size<3)bpicked.add(k); else return;
+  e.target.setAttribute('aria-pressed',bpicked.has(k));};
+$('bindOk').onclick=()=>{if(pend&&bpicked.size)H[pend]=[...bpicked]; closeBind(); drawHobbies(); redo();};
+$('bindSkip').onclick=()=>{closeBind(); drawHobbies(); redo();};
+
+const addHob=()=>{const n=$('hobIn').value.trim().slice(0,30); if(!n)return;
+  $('hobIn').value='';
+  if(PRESET.has(n)||custom.includes(n)){hobs.add(n); drawHobbies(); redo(); return;}
+  custom.push(n); hobs.add(n);
+  const low=n.toLowerCase(), m=KW.find(([r])=>r.test(low));
+  if(m){H[n]=m[1]; drawHobbies(); redo();}
+  else{drawHobbies(); openBind(n);}
+};
+$('hobAdd').onclick=addHob;
+$('hobIn').onkeydown=e=>{if(e.key==='Enter')addHob();};
+drawHobbies();
+
+$('file').onchange=e=>{
+  file=e.target.files[0]; if(!file)return;
+  window._photo=URL.createObjectURL(file);$('dropText').innerHTML=`<img alt="Твоё фото" src="${window._photo}">`;$('run').textContent='Определить стиль и найти пару';
+  $('run').disabled=false; st.textContent='';
+};
+
+$('run').onclick=async()=>{
+  if(!file){$('file').click();return;}
+  $('run').disabled=true;
+  try{
+    if(!clf){
+      st.textContent='Загружаю нейросеть (один раз, около 100 МБ)…';
+      clf = await pipeline('zero-shot-image-classification','Xenova/clip-vit-base-patch32',{
+        progress_callback:p=>{if(p.status==='progress')st.textContent=`Загрузка модели: ${Math.round(p.progress)}%`;}
+      });
+    }
+    st.textContent='Смотрю на твой образ…';
+    const url=URL.createObjectURL(file);
+    const out = await clf(url, keys.map(k=>S[k].clip), {hypothesis_template:'a photo of {}.'});
+    const probs={}; out.forEach(o=>{probs[keys[keys.findIndex(k=>S[k].clip===o.label)]]=o.score;});
+    st.textContent='';
+    show(probs,false,'photo');
+  }catch(err){
+    console.error(err);
+    st.textContent='Не получилось загрузить нейросеть. Проверь интернет или выбери стиль вручную ниже.';
+  }
+  $('run').disabled=false;
+};
+
+function show(probs,quiet,src){
+  window._last=probs; if(src)window._src=src; const gi=gender==='f'?0:1;
+  const mine=Object.entries(probs).sort((a,b)=>b[1]-a[1]).slice(0,3).filter(([,p],i)=>i===0||p>.12);
+  $('mine').innerHTML=mine.map(([k,p])=>`<span class="tag">${S[k].me}${mine.length>1||p<1?' '+Math.round(p*100)+'%':''}</span>`).join('')+mine.map(([k])=>`<p style="margin:10px 0 0"><b>${S[k].me}:</b> ${DESC[k]}</p>${ex(k)}`).join('');
+  const tot=mine.reduce((s,[,p])=>s+p,0);
+  const shared=k=>[...hobs].filter(n=>H[n]&&H[n].includes(k));
+  const scores=keys.map(k=>{
+    const base=mine.reduce((s,[m,p])=>s+p*cmp(m,k),0)/tot;
+    return [k,Math.min(97,Math.round(base+Math.min(3,shared(k).length)*7))];
+  }).sort((a,b)=>b[1]-a[1]);
+  $('bars').innerHTML=scores.slice(0,6).map(([k,v])=>`<div class="bar"><span>${S[k].n[gi]}</span><div class="t"><i style="width:${v}%"></i></div><b>${v}%</b></div>`).join('');
+  const talk=[...hobs].filter(n=>!H[n]);
+  $('tips').innerHTML=scores.slice(0,3).map(([k])=>{const sh=shared(k);
+    return `<div class="tips"><p><b>${S[k].n[gi]}</b></p><p class="note">${DESC[k]}</p>${TT[k]?`<p class="note">В ТикТоке: ${TT[k]}.</p>`:''}<p><b>${why(k,mine)}</b></p>${ex(k,gi)}<p>Где пересечься: ${placeLinks(k)}.</p><p>Что надеть, чтобы заметили:</p>${wearList(k)}<p>Как начать: ${opener(k,sh)}</p>${sh.length?`<p>Общие увлечения: ${sh.join(', ')}.</p>`:''}</div>`;}).join('')+
+    (talk.length?`<div class="tips"><p>Свои увлечения для первой фразы: ${talk.map(n=>esc(n)).join(', ')}. Начни с вопроса про это, так диалог завяжется легче.</p></div>`:'');
+  window._mine=mine; window._scores=scores;
+  $('topName').textContent=mine.map(([k])=>S[k].me).join(' + ').toUpperCase();
+  $('myPhoto').innerHTML=window._photo?`<img alt="Твоё фото" src="${window._photo}">`:`<span>${S[mine[0][0]].me.charAt(0).toUpperCase()}</span>`;
+  $('cards').innerHTML=scores.slice(0,3).map(([k,v])=>{const hu=keys.indexOf(k)*47;return `<div class="pc" style="--g:linear-gradient(160deg,hsl(${hu%360} 75% 62%),hsl(${(hu+40)%360} 70% 42%))"><span class="pct">${v}%<small>Совпадение</small></span><div class="pcn">${S[k].n[gi]}</div><div class="pcd">${DESC[k].split('. ')[0].replace(/\.$/,'')}.</div><a class="pbtn" href="https://www.pinterest.com/search/pins/?q=${enc(SEARCH[k]+' outfit'+(gi?' men':' women'))}" target="_blank" rel="noopener">Примеры образов</a></div>`;}).join('');
+  const tt=mine.reduce((s,[,p])=>s+p,0)||1;
+  $('mine').insertAdjacentHTML('afterbegin',`<div style="display:flex;height:22px;border:3px solid var(--ink);margin:0 0 12px">${mine.map(([k,p],i)=>`<i title="${S[k].me}" style="display:block;width:${p/tt*100}%;background:${['var(--blue)','var(--hot)','var(--ink)'][i%3]}"></i>`).join('')}</div>`);
+  const so=Object.values(probs).sort((a,b)=>b-a);
+  if(window._src==='photo'&&(so[0]<.3||so[0]-(so[1]||0)<.06))$('mine').insertAdjacentHTML('beforeend','<p class="note" style="margin-top:10px">Нейросеть не уверена в стиле. Нажми «Это не мой стиль» и выбери вручную или уточни тремя вопросами.</p><button id="clar" style="margin-top:8px">Уточнить тремя вопросами</button>');
+  syncCouple(mine[0][0]);syncShop(mine[0][0]);save();try{stDraw();}catch(e){} if(!quiet)try{Telegram.WebApp.HapticFeedback.notificationOccurred('success')}catch(e){}
+  $('res').classList.remove('hide');
+  if(!quiet)$('res').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ---------- поделиться ----------
+const link=()=>{const p={};Object.entries(window._last||{}).sort((a,b)=>b[1]-a[1]).slice(0,3).forEach(([k,v])=>p[k]=Math.round(v*100)/100);
+  return location.origin+location.pathname+'#r='+btoa(unescape(encodeURIComponent(JSON.stringify({g:gender,p,h:[...hobs].filter(n=>PRESET.has(n))}))));};
+const note=t=>{$('shNote').textContent=t;};
+const card=()=>{
+  const gi=gender==='f'?0:1,W=1080,Hh=1350,c=document.createElement('canvas');c.width=W;c.height=Hh;const x=c.getContext('2d'),T=THEMES[$('shTheme').value]||THEMES.light;
+  x.fillStyle=T.bg;x.fillRect(0,0,W,Hh);x.textBaseline='top';x.fillStyle=T.ink;
+  x.font='900 74px Manrope, sans-serif';x.fillText('LookMatch',70,80);
+  x.font='600 40px Manrope, sans-serif';x.fillText('Мой стиль:',70,200);
+  let tx=70,ty=260;
+  window._mine.forEach(([k,p])=>{const t=S[k].me+(window._mine.length>1?' '+Math.round(p*100)+'%':'');x.font='700 36px Manrope, sans-serif';
+    const w=x.measureText(t).width+36;if(tx+w>W-70){tx=70;ty+=80;}
+    x.fillStyle=T.hot;x.fillRect(tx,ty,w,64);x.fillStyle=T.tag;x.fillText(t,tx+18,ty+14);tx+=w+16;});
+  let y=ty+130;x.fillStyle=T.ink;x.font='700 44px Manrope, sans-serif';x.fillText('Шанс познакомиться',70,y);y+=90;
+  window._scores.slice(0,5).forEach(([k,v],i)=>{
+    x.fillStyle=T.ink;x.font='600 38px Manrope, sans-serif';x.fillText(S[k].n[gi],70,y);
+    x.textAlign='right';x.font='700 38px Manrope, sans-serif';x.fillText(v+'%',W-70,y);x.textAlign='left';
+    x.lineWidth=4;x.strokeStyle=T.ink;x.strokeRect(70,y+56,940,40);
+    x.fillStyle=i?T.hot:T.blue;x.fillRect(72,y+58,936*v/100,36);y+=140;});
+  x.fillStyle=T.ink;x.font='600 34px Manrope, sans-serif';x.fillText(location.host||'mystyle',70,Hh-90);
+  return c;};
+$('shShare').onclick=async()=>{
+  try{await document.fonts.ready;}catch(e){}
+  card().toBlob(async b=>{
+    const f=new File([b],'my-style.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],text:'Мой стиль'});return;}catch(e){}}
+    const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='my-style.png';a.click();note('Картинка сохранена, выложи её в сторис.');
+  });};
+$('shTg').onclick=()=>{const t=window._mine.map(([k])=>S[k].me).join(', ');
+  window.open('https://t.me/share/url?url='+encodeURIComponent(link())+'&text='+encodeURIComponent('Мой стиль: '+t+'. Какой у тебя?'),'_blank');};
+$('shCopy').onclick=async()=>{try{await navigator.clipboard.writeText(link());note('Ссылка скопирована.');}catch(e){note('Не получилось скопировать, выдели адрес в строке браузера.');}};
+
+// ---------- нас двое ----------
+const pp=new Set();
+$('pairChips').innerHTML=keys.map(k=>`<button class="chip" aria-pressed="false" data-k="${k}" title="${DESC[k]}">${S[k].me}</button>`).join('');
+$('pairChips').onclick=e=>{const k=e.target.dataset.k;if(!k)return;
+  if(pp.has(k))pp.delete(k);else if(pp.size<3)pp.add(k);else return;
+  e.target.setAttribute('aria-pressed',pp.has(k));$('pairGo').disabled=!pp.size;};
+$('pairGo').onclick=()=>{
+  const m=window._mine,tot=m.reduce((s,[,p])=>s+p,0);
+  const v=Math.round(m.reduce((s,[a,p])=>s+p/tot*[...pp].reduce((q,b)=>q+cmp(a,b),0)/pp.size,0));
+  const top=[...pp][0],gi=gender==='f'?0:1;
+  const verdict=v>=75?'Почти один вайб, тема для разговора найдётся сразу.':v>=55?'Стили разные, но друг другу интересны.':'Контраст, зато не скучно. Ищите общее в увлечениях.';
+  $('pairOut').textContent=`Совместимость стилей: ${v}%. ${verdict} Куда пойти вдвоём: ${S[top].place}.`;};
+
+// ---------- запоминание ----------
+function save(){try{localStorage.setItem('mystyle',JSON.stringify({g:gender,hobs:[...hobs],custom:custom.map(n=>({n,s:H[n]||null})),p:window._last}));}catch(e){}}
+function init(){
+  let d=null;try{d=JSON.parse(localStorage.getItem('mystyle')||'null');}catch(e){}
+  let r=null;if(location.hash.startsWith('#r=')){try{r=JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(3)))));}catch(e){}}
+  if(d){(d.custom||[]).forEach(c=>{if(!c||!c.n||custom.includes(c.n))return;custom.push(c.n);if(c.s)H[c.n]=c.s;});(d.hobs||[]).forEach(n=>{if(PRESET.has(n)||custom.includes(n))hobs.add(n);});}
+  if(r){hobs.clear();(r.h||[]).forEach(n=>PRESET.has(n)&&hobs.add(n));}
+  const src=r||d; drawHobbies();
+  if(src&&src.g){const b=document.querySelector(`#who [data-g="${src.g}"]`);if(b)b.click();}
+  if(src&&src.p&&Object.keys(src.p).every(k=>S[k]))show(src.p,true,'saved');
+}
+document.querySelectorAll('#who .chip').forEach(b=>b.addEventListener('click',()=>setTimeout(save,0)));
+$('hobbies').addEventListener('click',()=>setTimeout(save,0));
+try{Telegram.WebApp.ready();Telegram.WebApp.expand();}catch(e){}
+
+// ---------- стиль по вопросам ----------
+const Q=[
+ {q:'Идеальный вечер?',o:[['Концерт в подвале или бар с живой музыкой',[.6,.9,.1,0,.6,.1]],['Тихий вечер с книгой, чаем и пледом',[.2,0,0,.3,.7,.8]],['Тренировка, пробежка или игра с командой',[0,.2,1,.2,.1,.4]],['Клуб, танцы, громкая музыка',[.3,.6,.3,0,.8,.3]],['Кино, игры или аниме с друзьями дома',[.3,.2,0,.1,.7,.7]]]},
+ {q:'Какие цвета в твоём шкафу чаще всего?',o:[['Чёрный и тёмные оттенки',[.9,.5,.1,.3,.3,.1]],['Пастельные: розовый, лиловый, мятный',[0,0,0,.1,.7,1]],['Бежевый, белый, серый',[0,0,.2,.7,.1,.6]],['Яркие и неоновые',[.1,.6,.3,0,.9,.4]],['Тёплые коричневые, зелёные, землистые',[.3,.2,.2,.3,.7,.7]]]},
+ {q:'Какая обувь тебе ближе?',o:[['Тяжёлые ботинки или берцы',[.7,.7,.2,.1,.4,0]],['Кроссовки',[.1,.3,.8,.1,.3,.4]],['Лоферы, туфли, аккуратная классика',[0,0,.1,1,.2,.4]],['Балетки и милая обувь',[0,0,0,.3,.6,1]],['Кеды',[.2,.4,.4,.1,.5,.5]]]},
+ {q:'Как ты относишься к правилам в одежде?',o:[['Правила скучные, люблю их ломать',[.4,1,.2,0,.7,.1]],['Люблю аккуратность и порядок',[0,0,.2,1,.2,.5]],['Главное, чтобы было удобно',[.1,.2,.6,.1,.3,.6]],['Важна идея и целостный образ',[.3,.3,0,.2,1,.5]]]},
+ {q:'Что с аксессуарами?',o:[['Цепи, кольца, пирсинг',[.6,.7,.2,.1,.6,.1]],['Банты, жемчуг, милые заколки',[0,0,0,.3,.7,1]],['Минимум: часы или одно кольцо',[0,0,.3,.8,.1,.5]],['Значки, очки, принты на вещах',[.2,.3,.1,.2,.8,.6]],['Почти ничего не ношу',[.1,.1,.5,.3,.2,.5]]]},
+ {q:'Где тебе лучше всего?',o:[['В городе ночью',[.5,.5,.3,.2,.6,.2]],['На природе, в лесу, в походе',[.1,.2,.7,.1,.6,.7]],['В кафе, музеях, библиотеках',[.3,0,0,.6,.7,.7]],['На улице, во дворе, на скейт-споте',[.3,.7,.7,0,.5,.2]],['Дома, за играми или рисованием',[.3,.2,0,.1,.7,.7]]]},
+ {q:'Какая музыка чаще в наушниках?',o:[['Рок, панк, метал',[.7,.8,.1,0,.6,.1]],['Электроника и техно',[.4,.5,.3,0,.8,.3]],['Рэп и хип-хоп',[.2,.6,.5,.1,.6,.2]],['Поп и k-pop',[.1,.2,.2,.3,.7,.8]],['Инди, джаз или классика',[.3,.2,0,.5,.8,.7]]]},
+ {q:'Как хочешь выглядеть на первом свидании?',o:[['Загадочно',[.8,.3,0,.4,.7,.3]],['Уверенно и стильно',[.1,.2,.2,.9,.4,.3]],['Уютно и мило',[0,0,.1,.2,.6,1]],['Смело, чтобы запомнили',[.4,.8,.3,0,.9,.3]],['Естественно, как обычно',[0,.1,.4,.3,.2,.6]]]}
+];
+let qi=0,ans=[],QS=Q,blend=null;
+function drawQ(){const q=QS[qi];
+  $('qNum').textContent=`Вопрос ${qi+1} из ${QS.length}${vibeMode?' · Vibe Check':''}`;$('qText').textContent=q.q;
+  $('qOpts').innerHTML=q.o.map((o,i)=>`<button class="chip" data-i="${i}" style="display:block;width:100%;text-align:left;margin-bottom:10px">${o[0]}</button>`).join('');
+  $('qBack').disabled=qi===0;}
+$('startQuiz').onclick=()=>{vibeMode=false;QS=Q;blend=null;qi=0;ans=[];$('quizBox').classList.remove('hide');drawQ();$('quizBox').scrollIntoView({behavior:'smooth',block:'start'});};
+$('qOpts').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;
+  ans[qi]=QS[qi].o[+b.dataset.i][1];
+  if(qi<QS.length-1){qi++;drawQ();}else finishQ();};
+$('qBack').onclick=()=>{if(qi>0){qi--;drawQ();}};
+function finishQ(){
+  const avg=[0,1,2,3,4,5].map(i=>ans.reduce((s,v)=>s+v[i],0)/ans.length);
+  if(vibeMode){finishVibe(avg);return;}
+  const w={};let tot=0;
+  keys.forEach(k=>{const d=Math.hypot(...S[k].t.map((v,i)=>v-avg[i]));w[k]=Math.exp(-7*d);tot+=w[k];});
+  keys.forEach(k=>w[k]/=tot);
+  $('quizBox').classList.add('hide');
+  if(blend){keys.forEach(k=>w[k]=.5*w[k]+.5*(blend[k]||0));blend=null;show(w,false,'photo+quiz');}else show(w,false,'quiz');}
+
+// ---------- 12 дополнительных вопросов ----------
+const Q2=[
+ {q:'Как проходит утро перед выходом?',o:[['Надеваю первое, что попалось',[.1,.2,.5,.1,.2,.5]],['Долго подбираю образ',[.2,.3,0,.4,.9,.5]],['Всё готово с вечера, строго по плану',[0,0,.3,.9,.1,.5]],['Растрёпанный, зато в настроении',[.4,.8,.2,0,.5,.3]]]},
+ {q:'Любимое время года?',o:[['Зима и холод',[.6,.2,.3,.4,.5,.4]],['Осень',[.5,.1,.1,.5,.7,.7]],['Весна и цветы',[0,0,.1,.2,.7,1]],['Лето, море, движение',[.1,.4,.7,.1,.5,.4]]]},
+ {q:'Какой фильм включишь?',o:[['Ужасы или триллер',[.9,.5,0,.2,.6,.1]],['Романтика или дорама',[0,0,0,.3,.6,1]],['Фантастика или аниме',[.3,.2,.1,.1,.8,.5]],['Классика или арт-хаус',[.3,.1,0,.6,.8,.5]],['Экшен или спортивная драма',[.2,.5,.7,.2,.2,.2]]]},
+ {q:'Выходной с друзьями?',o:[['Гуляем по городу и фоткаемся',[.2,.3,.3,.2,.7,.6]],['Концерт или клуб',[.5,.7,.3,0,.7,.2]],['Играем дома или смотрим аниме',[.3,.1,0,.1,.7,.7]],['Спорт или поход',[0,.2,1,.1,.3,.5]],['Кафе и выставки',[.1,0,0,.6,.7,.7]]]},
+ {q:'Как ты относишься к трендам?',o:[['Слежу и пробую новое',[.2,.4,.2,.2,.8,.5]],['Ношу своё, тренды не волнуют',[.3,.7,.2,.1,.7,.2]],['Люблю вечную классику',[0,0,.2,.9,.2,.5]],['Беру то, что удобно',[0,.1,.6,.2,.2,.6]]]},
+ {q:'Какая причёска ближе?',o:[['Яркий цвет или необычная форма',[.4,.8,.1,0,.9,.3]],['Гладкая и аккуратная',[0,0,.2,.9,.2,.5]],['Длинные естественные волосы',[.1,.1,.2,.2,.7,.8]],['Короткая и практичная',[.2,.4,.6,.2,.3,.3]],['Небрежная и растрёпанная',[.5,.7,.2,0,.5,.3]]]},
+ {q:'Идеальный отпуск?',o:[['Поход с палаткой',[.1,.3,.8,.1,.5,.5]],['Большой город и музеи',[.3,.1,.1,.6,.7,.6]],['Фестиваль',[.4,.7,.4,0,.8,.3]],['Море и ничего не делать',[0,.1,.2,.4,.2,.8]],['Тишина в деревне',[.1,.1,.1,.2,.8,.9]]]},
+ {q:'Откуда в основном твои вещи?',o:[['Секонд и барахолки',[.3,.6,.2,.1,.9,.4]],['Масс-маркет',[.1,.1,.3,.4,.3,.6]],['Дорогие базовые вещи',[0,0,.2,.9,.2,.5]],['Спортивные бренды',[.1,.3,.9,.1,.2,.4]],['Шью или переделываю сам',[.4,.7,.1,.1,1,.4]]]},
+ {q:'Твой главный козырь?',o:[['Харизма и смелость',[.3,.8,.3,.1,.6,.2]],['Спокойствие и надёжность',[0,0,.3,.6,.2,.8]],['Креативность',[.3,.3,0,.1,1,.5]],['Выносливость',[.1,.3,1,.2,.1,.4]],['Загадочность',[.9,.4,0,.3,.6,.3]]]},
+ {q:'Блёстки и яркий макияж?',o:[['Обожаю',[.1,.5,.1,0,.9,.5]],['Только чуть-чуть',[0,.1,.1,.4,.4,.7]],['Мне ближе тёмный или естественный',[.6,.4,.2,.2,.4,.2]],['Не пользуюсь',[.1,.2,.6,.3,.2,.4]]]},
+ {q:'Любимое место в городе?',o:[['Старая улица с кофейней',[.2,.1,0,.4,.7,.8]],['Клуб или концертный зал',[.5,.7,.3,0,.7,.2]],['Парк или набережная',[.1,.1,.6,.3,.5,.7]],['Гараж или скейт-парк',[.4,.8,.7,0,.4,.1]],['Библиотека или книжный',[.3,0,0,.6,.7,.7]]]},
+ {q:'Что для тебя одежда?',o:[['Способ выразить себя',[.3,.6,.1,.1,1,.4]],['Удобство',[.1,.1,.6,.2,.2,.7]],['Статус и аккуратность',[0,0,.2,1,.2,.4]],['Броня и защита',[.7,.6,.4,.3,.3,0]]]}
+];
+$('startQuiz2').onclick=()=>{vibeMode=false;QS=Q.concat(Q2);blend=null;qi=0;ans=[];$('quizBox').classList.remove('hide');drawQ();$('quizBox').scrollIntoView({behavior:'smooth',block:'start'});};
+window.clarify=()=>{vibeMode=false;blend=window._last;QS=[...Q.keys()].sort(()=>Math.random()-.5).slice(0,3).map(i=>Q[i]);qi=0;ans=[];
+  $('quizBox').classList.remove('hide');drawQ();$('quizBox').scrollIntoView({behavior:'smooth',block:'start'});};
+document.addEventListener('click',e=>{if(e.target.id==='clar')window.clarify();});
+
+// ---------- места, вещи, первая фраза ----------
+const enc=encodeURIComponent;
+function placeLinks(k){const c=($('city').value||'').trim();
+  return S[k].place.split(/,\s*/).map(p=>`<a href="https://www.google.com/maps/search/${enc(p+(c?' '+c:''))}" target="_blank" rel="noopener">${p}</a>`).join(', ');}
+function wearList(k){const q=enc(S[k].me+' одежда');
+  return `<ul style="margin:4px 0 8px;padding-left:20px">${S[k].wear.split(/,\s*/).map(w=>`<li>${w}</li>`).join('')}</ul><p class="note" style="margin:0 0 8px">Искать недорого: <a href="https://www.vinted.com/catalog?search_text=${q}" target="_blank" rel="noopener">Vinted</a>, <a href="https://www.avito.ru/rossiya?q=${q}" target="_blank" rel="noopener">Авито</a>, <a href="${kuf(S[k].me+' одежда')}" target="_blank" rel="noopener">Куфар</a></p><p class="note" style="margin:0 0 8px">Что искать на Куфаре: ${kLinks(SHOP[k])}</p>`;}
+const OPEN=['Спроси, какая музыка или фильм у человека сейчас на повторе.','Похвали необычную деталь образа и спроси, где её нашли или сделали.','Предложи размяться вместе: прогулка, пробежка, зал, и спроси, чем он занимается обычно.','Начни с комплимента вкусу и спроси про любимое место в городе.','Спроси, над чем человек работает: что рисует, снимает, пишет или придумывает.','Предложи кофе или чай и спроси про любимую книгу или сериал.'];
+function opener(k,sh){const t=S[k].t,i=t.indexOf(Math.max(...t));return OPEN[i]+(sh.length?' Или начни с общего: '+sh[0]+'.':'');}
+$('city').oninput=()=>{if(window._last)show(window._last,true);};
+
+// ---------- подарок и совместимость ----------
+const GIFT=[['свечи и ароматы','книга в тёмной обложке','серебряное украшение','винил или футболка любимой группы'],['значки и нашивки','кастомная куртка или сумка','билет на концерт','аксессуары для волос или одежды'],['бутылка для воды или шейкер','абонемент или билет на матч','беспроводные наушники','рюкзак для тренировок'],['хороший шарф или ремень','парфюм','книга-бестселлер','кошелёк или ежедневник'],['набор для рисования или блокнот','камера Instax и плёнка','билет на выставку или в театр','настольная игра'],['плед и тёплые носки','плюшевая игрушка','набор чая','милый аксессуар или значок']];
+$('pairGo').onclick=()=>{
+  const sel=[...pp];
+  const avg=[0,1,2,3,4,5].map(i=>sel.reduce((s,k)=>s+S[k].t[i],0)/sel.length);
+  const top=avg.map((v,i)=>[i,v]).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([i])=>i);
+  const gifts=top.flatMap(i=>GIFT[i].slice(0,3));
+  let out='';
+  if(window._mine){
+    const m=window._mine,tot=m.reduce((s,[,p])=>s+p,0);
+    const v=Math.round(m.reduce((s,[a,p])=>s+p/tot*sel.reduce((q,b)=>q+cmp(a,b),0)/sel.length,0));
+    const verdict=v>=75?'Почти один вайб, тема для разговора найдётся сразу.':v>=55?'Стили разные, но друг другу интересны.':'Контраст, зато не скучно. Ищите общее в увлечениях.';
+    out=`Совместимость стилей: ${v}%. ${verdict} Куда пойти вдвоём: ${S[sel[0]].place}.<br>`;}
+  $('pairOut').innerHTML=out+`Что подарить: ${gifts.join('; ')}.`;};
+$('friendGo').onclick=()=>{
+  const v=$('friendLink').value,i=v.indexOf('#r='),out=$('friendOut');let r=null;
+  if(!window._mine){out.textContent='Сначала получи свой результат.';return;}
+  try{r=JSON.parse(decodeURIComponent(escape(atob(v.slice(i+3).trim()))));}catch(e){}
+  const fk=r&&r.p?Object.keys(r.p).filter(k=>S[k]):[];
+  if(i<0||!fk.length){out.textContent='Не получилось прочитать ссылку. Нужна ссылка из кнопки «Скопировать ссылку».';return;}
+  const m=window._mine,tot=m.reduce((s,[,p])=>s+p,0),ft=fk.reduce((s,k)=>s+r.p[k],0)||1;
+  const val=Math.round(m.reduce((s,[a,p])=>s+p/tot*fk.reduce((q,b)=>q+r.p[b]/ft*cmp(a,b),0),0));
+  const sameS=m.map(([k])=>k).filter(k=>fk.includes(k)).map(k=>S[k].me);
+  const sameH=(r.h||[]).filter(n=>PRESET.has(n)&&hobs.has(n));
+  out.textContent=`Вы похожи на ${val}%. Общие стили: ${sameS.join(', ')||'нет'}. Общие увлечения: ${sameH.join(', ')||'нет'}.`;};
+
+// ---------- темы картинки ----------
+const THEMES={light:{bg:'#fdeadc',ink:'#2e3d4f',hot:'#ff7b6b',blue:'#ffa94d',tag:'#fff'},dark:{bg:'#2a1d18',ink:'#fdeadc',hot:'#ff8a7a',blue:'#ffb454',tag:'#2a1d18'},pink:{bg:'#ffd9e0',ink:'#4a1a2a',hot:'#e8456b',blue:'#ff9a5a',tag:'#fff'}};
+
+// ================= НОВЫЕ РЕЖИМЫ =================
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g)$(g.dataset.go).scrollIntoView({behavior:'smooth',block:'start'});});
+
+// ---------- Vibe Check ----------
+// [семья, id, родительский стиль, название, запрос для поиска, слова, палитра, описание, черты]
+const FAM=['Академия','Кокетка и нежность','Киберпанк и экраны','Блоккор и спорт','Лес и природа','Люкс и город','Сцена и клуб'];
+const SUBS=[
+ [0,'dark_academia','darkacad','Dark Academia','dark academia','библиотека, твид, свечи',['#3b2a20','#6b4f3a','#1f3a2e'],'Твидовые пиджаки, водолазки и клетка в тёмных тонах. Будто ты задержался в старой библиотеке после полуночи.',[.6,.1,0,.7,.7,.4]],
+ [0,'light_academia','preppy','Light Academia','light academia','утро, лён, закладки',['#f1e6d3','#c9b28a','#8a9a7b'],'Кремовые рубашки, льняные жилеты и светлая клетка. Тот же роман с наукой, только при дневном свете.',[.1,0,.1,.7,.7,.7]],
+ [0,'chaotic_academia','darkacad','Chaotic Academia','chaotic academia','сессия, чернила, значки',['#5a4a3c','#a8452f','#2f4858'],'Пиджак поверх свитера, галстук набок и пятна чернил. Образ человека, у которого дедлайн сегодня.',[.4,.5,.1,.4,.9,.3]],
+ [0,'romantic_academia','darkacad','Romantic Academia','romantic academia','бархат, письма, сухоцветы',['#6a2c3e','#c4a35a','#2b2233'],'Рюши, бархат, сухие цветы между страниц и письма от руки. Академия, где много поэзии.',[.5,.1,0,.4,.8,.7]],
+ [0,'gothic_academia','goth','Gothic Academia','gothic academia','витражи, чёрный, серебро',['#17141a','#5b3a4f','#8c8c96'],'Чёрный пиджак, высокий воротник и серебро. Академия с витражами и тайными ходами.',[.9,.3,0,.5,.7,.3]],
+
+ [1,'coquette','coquette','Coquette','coquette','банты, жемчуг, лёгкий флирт',['#ffd1dc','#fdf0e6','#c97b84'],'Банты, ленты, кружево, жемчуг и балетки. Нежный девичий образ с оттенком флирта.',[0,0,0,.4,.7,1]],
+ [1,'dollette','coquette','Dollette','dollette coquette','рюши, леденцы, кукла',['#ff9fc2','#ffe3ef','#d4a5ff'],'Пышные юбки, рюши и леденцовые цвета. Кукольный образ, как у героини сказки.',[0,.1,0,.2,.8,1]],
+ [1,'lolita','kawaii','Lolita','lolita fashion','корсаж, оборки, чай',['#f7c6d9','#ffffff','#3d2a4a'],'Японская мода с пышной юбкой, оборками и чаепитием из красивых чашек. Бывает сладкой, классической и готической.',[.2,.2,0,.6,.9,.7]],
+ [1,'angelcore','fairy','Angelcore','angelcore','белое, жемчуг, свет',['#ffffff','#e7eefc','#f3dfc1'],'Белое, жемчужное и кружевное, чуть-чуть перьев. Лёгкий образ ангела на утреннем свету.',[0,0,0,.2,.8,1]],
+ [1,'lana','retro','Lana Core','lana del rey aesthetic','красная помада, Америка, кино',['#a4161a','#f5e6d0','#2f5d62'],'Красная помада, цветочные платья, клетчатые юбки и винтажные очки. Героиня старого американского кино.',[.3,.1,0,.4,.7,.6]],
+
+ [2,'cyberpunk','cyber','Cyberpunk','cyberpunk','неон, дождь, техника',['#0d0d1a','#ff2a6d','#05d9e8'],'Неон на чёрном, техничные ткани, светящиеся детали и тяжёлая обувь. Город будущего под дождём.',[.7,.5,.1,.1,.9,.1]],
+ [2,'cybergoth','goth','Cybergoth','cybergoth','кислота, платформа, рейв',['#111111','#39ff14','#ff1493'],'Чёрное с кислотными акцентами и массивной платформой. Гот, переехавший на рейв.',[.9,.6,.1,0,.8,.1]],
+ [2,'vaporwave','y2k','Vaporwave','vaporwave','закат, пальмы, ретро-компьютер',['#ff71ce','#01cdfe','#b967ff'],'Розовый и бирюзовый закат, статуи и ретро-компьютеры. Ностальгия по 80–90-м через экран.',[.2,.3,0,.1,.9,.5]],
+ [2,'glitchcore','cyber','Glitchcore','glitchcore','помехи, пиксели, градиент',['#00ffd5','#ff00a8','#1a1a2e'],'Помехи, пиксели, яркие градиенты и асимметрия. Образ, как красиво сломанный экран.',[.5,.6,0,0,1,.2]],
+ [2,'webcore','geek','Webcore','webcore','ICQ, иконки, окна',['#6ec1e4','#ffd966','#c0c0c0'],'Ранний интернет: пиксельные иконки, мягкие цвета и блестящие кнопки. Эстетика форумов и старых мессенджеров.',[.1,.3,0,.2,.9,.5]],
+
+ [3,'blokecore','sport','Blokecore','blokecore','джерси, джинсы, паб',['#1f4e8c','#e8e8e8','#2b2b2b'],'Футбольная джерси, прямые джинсы, кеды и кепка. Образ болельщика из британского паба.',[.1,.3,.7,.1,.3,.3]],
+ [3,'casuals','street','Terrace Casuals','terrace casual football','терраса, поло, кроссовки',['#27313a','#c7c7c7','#8b0000'],'Поло, тёмная куртка, аккуратные джинсы и ретро-кроссовки. Субкультура английских футбольных фанатов.',[.2,.4,.6,.4,.3,.2]],
+ [3,'retro_sport','sport','Retro Sport','90s retro sportswear','олимпийка, полоски, девяностые',['#e63946','#f1faee','#1d3557'],'Олимпийка с полосками, широкие штаны и кроссовки со старой подошвой. Спорт девяностых с семейных фото.',[.1,.3,.8,.1,.4,.4]],
+ [3,'varsity','preppy','Varsity','varsity jacket','бомбер, буквы, команда',['#8d1b2d','#f2e9d8','#1c2541'],'Университетский бомбер, буквы на груди и свитшот. Американская школьная команда.',[0,.2,.6,.4,.3,.4]],
+ [3,'tenniscore','preppy','Tenniscore','tenniscore','корт, белый, козырёк',['#ffffff','#9ac38c','#1d3a6b'],'Белая юбка или шорты, поло, козырёк и свитер на плечах. Корт, лето и чистые линии.',[0,0,.6,.7,.2,.5]],
+
+ [4,'goblincore','cottage','Goblincore','goblincore','мох, грибы, находки',['#4a5d3a','#8b6f47','#2e2a1f'],'Мох, грибы, потёртая шерсть и карманы с находками. Лесной житель, который собирает всё интересное.',[.3,.3,.2,0,.9,.6]],
+ [4,'dark_cottage','cottage','Dark Cottagecore','dark cottagecore','бархат, сухоцветы, легенды',['#2b2118','#5c3d2e','#6b705c'],'Коттеджкор с тёмной стороны: чёрное кружево, бархат и венки из сухоцветов. Деревня, где по ночам ходят легенды.',[.6,.1,0,.2,.8,.6]],
+ [4,'mori','boho','Mori Kei','mori kei','лес, лён, слои',['#d9cbb0','#8f9779','#b08968'],'Японская «лесная девушка»: слои из льна, длинные юбки, мягкие тона и вязаные вещи. Свободно и спокойно.',[.1,0,.1,.2,.8,.9]],
+ [4,'solarpunk','gorp','Solarpunk','solarpunk fashion','зелень, переработка, будущее',['#7bb661','#f2c14e','#2f6f73'],'Зелёные тона, переработанные ткани и технологии, которые дружат с природой. Образ оптимистичного будущего.',[0,.2,.3,.1,.9,.6]],
+
+ [5,'coastal','oldmoney','Coastal Grandmother','coastal grandmother','лён, море, кофе',['#f5efe6','#a7c4d3','#c8a97e'],'Льняные рубашки, кремовый и голубой, плетёные сумки. Богатая спокойная расслабленность у моря.',[0,0,.2,.5,.3,.8]],
+ [5,'parisian','classic','Parisian Chic','parisian chic','тельняшка, тренч, помада',['#1b263b','#f4f1de','#c1121f'],'Тельняшка, тренч, красная помада и балетки. Небрежная элегантность, которая будто даётся без усилий.',[.1,.1,.1,.7,.5,.4]],
+ [5,'dark_feminine','siren','Dark Feminine','dark feminine','шёлк, корсет, взгляд',['#100c10','#7a0c2e','#d4af37'],'Чёрный шёлк, корсет и красная помада. Сила, загадочность и уверенный взгляд.',[.7,.3,0,.6,.5,.2]],
+ [5,'vanilla','cleangirl','Vanilla Girl','vanilla girl','молочный, бежевый, свечи',['#f7ecd9','#e0c9a6','#b89f7a'],'Молочные, кремовые и бежевые тона, мягкая ткань и тёплые свечи. Спокойствие в виде гардероба.',[0,0,.2,.4,.3,.9]],
+ [5,'minimal90','classic','90s Minimalism','90s minimalism','прямой крой, серый, тишина',['#e5e5e5','#8d8d8d','#1a1a1a'],'Прямой крой, серый и чёрный, тонкие линии. Ни одной лишней детали, как в девяностых.',[.2,.1,.2,.8,.3,.3]],
+
+ [6,'mcbling','y2k','McBling','mcbling','стразы, велюр, глянец',['#ff6ec7','#ffd700','#ffffff'],'Стразы, велюровые костюмы, большие очки и блестящие сумки. Гламур нулевых, как у кумиров таблоидов.',[.1,.4,.1,.1,.8,.5]],
+ [6,'scene','emo','Scene','scene kid','яркие пряди, сетка, полоски',['#ff1493','#00e5ff','#111111'],'Цветные пряди, неоновые аксессуары, сетчатые перчатки и полосатые гетры. Эмо-сцена нулевых, только весёлая.',[.4,.7,0,0,.9,.4]],
+ [6,'riotgrrrl','punk','Riot Grrrl','riot grrrl','зины, лозунги, берцы',['#e63946','#111111','#f8f1e5'],'Рваные колготки, самодельные футболки с лозунгами и тяжёлые ботинки. Панк, феминизм и зины.',[.5,1,.1,0,.8,.1]],
+ [6,'decora','kawaii','Decora Kei','decora kei','заколки, игрушки, всё сразу',['#ff5fa2','#ffe14d','#5ad1ff'],'Десятки заколок, цветные чулки, игрушки и всё одновременно. Харадзюку на максимальной громкости.',[0,.5,0,0,1,.7]]
+].map(r=>({fam:r[0],id:r[1],parent:r[2],n:r[3],q:r[4],w:r[5],pal:r[6],d:r[7],t:r[8]}));
+const SUBM=Object.fromEntries(SUBS.map(s=>[s.id,s]));
+const sw=pal=>`<div class="sw" aria-hidden="true">${pal.map(c=>`<i style="background:${c}"></i>`).join('')}</div>`;
+let vibeSel=[],vibeSrc='pick',vibeMode=false;
+
+$('vibeFam').innerHTML=FAM.map((f,fi)=>`<details class="fam"${fi===0?' open':''}><summary>${f}</summary><div class="vgrid">${
+  SUBS.filter(s=>s.fam===fi).map(s=>`<div class="vc" data-card="${s.id}">${sw(s.pal)}<div class="vb"><b>${s.n}</b><span class="note">${s.w}</span><p>${s.d}</p><button class="chip" aria-pressed="false" data-v="${s.id}">Мой вайб</button></div></div>`).join('')
+}</div></details>`).join('');
+
+function setVibe(sel){
+  vibeSel=sel;const ids=sel.map(x=>x[0]);
+  document.querySelectorAll('[data-v]').forEach(b=>{const on=ids.includes(b.dataset.v);b.setAttribute('aria-pressed',on);b.textContent=on?'Выбрано':'Мой вайб';b.closest('.vc').classList.toggle('on',on);});
+  const o=$('vibeOut');
+  if(!sel.length){o.classList.add('hide');o.innerHTML='';return;}
+  o.classList.remove('hide');
+  o.innerHTML='<h2 style="font-size:19px;margin-top:14px">Твой вайб</h2>'+sel.map(([id,w])=>{const s=SUBM[id],q=enc(s.q+' outfit');
+    return `<div class="vres">${sw(s.pal)}<div><b>${s.n}</b>${vibeSrc==='quiz'?' '+Math.round(w*100)+'%':''}<br><span class="note">${s.w}</span><p>${s.d}</p><p class="note">Корни в стиле «${S[s.parent].me}». Примеры: <a href="https://www.pinterest.com/search/pins/?q=${q}" target="_blank" rel="noopener">Pinterest</a>, <a href="https://www.tiktok.com/search?q=${q}" target="_blank" rel="noopener">TikTok</a></p><p class="note">Искать на Куфаре: ${kLinks(SHOP[s.parent])}</p></div></div>`;}).join('')+
+    '<div class="row"><button class="go" id="vibeGo">Найти пару по этому вайбу</button></div>';
+}
+$('vibeFam').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;
+  const cur=vibeSel.map(x=>x[0]),i=cur.indexOf(b.dataset.v);
+  $('vibeSt').textContent='';
+  if(i>-1)cur.splice(i,1);else if(cur.length<3)cur.push(b.dataset.v);else{$('vibeSt').textContent='Можно выбрать до 3 эстетик. Сними одну, чтобы выбрать другую.';return;}
+  vibeSrc='pick';setVibe(cur.map(x=>[x,1/cur.length]));};
+$('vibeOut').onclick=e=>{if(e.target.id!=='vibeGo')return;
+  const p={};vibeSel.forEach(([id,w])=>{const k=SUBM[id].parent;p[k]=(p[k]||0)+w;});
+  const t=Object.values(p).reduce((s,v)=>s+v,0)||1;Object.keys(p).forEach(k=>p[k]/=t);
+  show(p,false,'vibe');};
+function startVibeQuiz(long){vibeMode=true;QS=long?Q.concat(Q2):Q;blend=null;qi=0;ans=[];
+  $('quizBox').classList.remove('hide');drawQ();$('quizBox').scrollIntoView({behavior:'smooth',block:'start'});}
+$('vibeQ').onclick=()=>startVibeQuiz(false);
+$('vibeQ2').onclick=()=>startVibeQuiz(true);
+function finishVibe(avg){
+  const w=SUBS.map(s=>[s.id,Math.exp(-7*Math.hypot(...s.t.map((v,i)=>v-avg[i])))]);
+  const tot=w.reduce((s,x)=>s+x[1],0),top=w.map(([id,v])=>[id,v/tot]).sort((a,b)=>b[1]-a[1]).slice(0,3),sm=top.reduce((s,x)=>s+x[1],0);
+  vibeMode=false;$('quizBox').classList.add('hide');vibeSrc='quiz';setVibe(top.map(([id,p])=>[id,p/sm]));
+  $('vibe').scrollIntoView({behavior:'smooth',block:'start'});}
+
+// ---------- Битва луков ----------
+const OCC={
+ date:{w:'свидания',pos:['a romantic, stylish and attractive date night outfit','a charming, well put together outfit for a first date','a flattering and confident stylish outfit'],neg:['a sloppy, unflattering outfit','a dull plain outfit with no style','an outfit that does not suit a date'],tip:'На свидании выигрывает образ, в котором ты выглядишь собой и есть один заметный акцент.'},
+ study:{w:'учёбы',pos:['a comfortable neat outfit for school or university','a practical and stylish casual outfit for studying','a tidy smart casual outfit'],neg:['a messy inappropriate outfit','an over the top party outfit','a sloppy outfit with no care'],tip:'Для учёбы важны удобство и аккуратность: вещи, в которых комфортно просидеть весь день.'},
+ party:{w:'вечеринки',pos:['a bold and fun party outfit','a glamorous eye-catching nightlife outfit','a trendy club outfit with attitude'],neg:['a boring plain outfit','a sloppy daytime outfit','a formal office outfit']  ,tip:'На вечеринке работает смелость: яркая деталь, фактура или силуэт, который запомнят.'}
+};
+const duel={A:null,B:null,urlA:null,urlB:null,occ:'date',votes:[0,0],ai:null};
+const duelReset=()=>{duel.ai=null;duel.votes=[0,0];$('duelOut').classList.add('hide');$('duelOut').innerHTML='';$('duelSt').textContent='';};
+document.querySelectorAll('#occ .chip').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#occ .chip').forEach(x=>x.setAttribute('aria-pressed',x===b));duel.occ=b.dataset.o;duelReset();});
+['A','B'].forEach(X=>{
+  $('f'+X).onchange=e=>{const f=e.target.files[0];if(!f)return;
+    duel[X]=f;duel['url'+X]=URL.createObjectURL(f);
+    $('s'+X).innerHTML=`<img alt="Лук ${X==='A'?'А':'Б'}" src="${duel['url'+X]}">`;
+    $('s'+X).parentElement.classList.add('has');
+    $('duelGo').disabled=!(duel.A&&duel.B);duelReset();};
+});
+async function getClf(msg){
+  if(clf)return clf;
+  msg('Загружаю нейросеть (один раз, около 100 МБ)…');
+  clf=await pipeline('zero-shot-image-classification','Xenova/clip-vit-base-patch32',{progress_callback:p=>{if(p.status==='progress')msg(`Загрузка модели: ${Math.round(p.progress)}%`);}});
+  return clf;}
+$('duelGo').onclick=async()=>{
+  const o=OCC[duel.occ],msg=t=>{$('duelSt').textContent=t;};
+  $('duelGo').disabled=true;$('duelOut').classList.add('hide');
+  try{
+    const c=await getClf(msg),sc=[],ks=[];
+    for(const X of ['A','B']){
+      msg(`Оцениваю лук ${X==='A'?'А':'Б'}…`);
+      const url=duel['url'+X],tpl={hypothesis_template:'a photo of {}.'};
+      const out=await c(url,[...o.pos,...o.neg],tpl);
+      sc.push(out.filter(r=>o.pos.includes(r.label)).reduce((s,r)=>s+r.score,0));
+      const so=await c(url,keys.map(k=>S[k].clip),tpl);
+      const top=so.slice().sort((a,b)=>b.score-a.score)[0];
+      ks.push(keys.find(k=>S[k].clip===top.label));
+    }
+    duel.ai={pA:Math.round(100*sc[0]/((sc[0]+sc[1])||1)),k:ks};duel.votes=[0,0];
+    msg('');renderDuel();$('duelOut').scrollIntoView({behavior:'smooth',block:'nearest'});
+  }catch(err){
+    console.error(err);msg('Не получилось загрузить нейросеть. Проверь интернет и попробуй ещё раз.');
+  }
+  $('duelGo').disabled=false;
+};
+function renderDuel(){
+  const d=duel,a=d.ai;if(!a)return;
+  const o=OCC[d.occ],fv=d.votes[0]+d.votes[1];
+  const tot=fv?Math.round((a.pA+d.votes[0]/fv*100)/2):a.pA,win=tot>=53?0:tot<=47?1:-1,L=['А','Б'],pc=[tot,100-tot];
+  $('duelOut').classList.remove('hide');
+  $('duelOut').innerHTML=
+   `<div class="verdict"><div class="vt">${win<0?'Ничья':'Побеждает лук '+L[win]}</div><p>${win<0?`Оба образа примерно одинаково подходят для ${o.w}.`:`Лук ${L[win]} круче для ${o.w}: ${pc[win]}% против ${pc[1-win]}%.`}</p></div>`+
+   [0,1].map(i=>`<div class="bar"><span>Лук ${L[i]}: ${S[a.k[i]].me}</span><div class="t"><i style="width:${pc[i]}%"></i></div><b>${pc[i]}%</b></div>`).join('')+
+   `<p class="note">ИИ: ${a.pA}% за А, ${100-a.pA}% за Б.${fv?` Друзья: ${d.votes[0]} за А, ${d.votes[1]} за Б. Итог считается пополам из голоса ИИ и друзей.`:''}</p>`+
+   `<p class="note">${o.tip}</p>`+
+   `<p class="note" style="margin-bottom:8px">Передай телефон друзьям, пусть нажмут за свой любимый лук:</p>`+
+   `<div class="row"><button data-vote="0">Друг за А</button><button data-vote="1">Друг за Б</button>${fv?'<button data-vote="r">Сбросить голоса</button>':''}</div>`+
+   `<div class="row"><button class="go" id="duelShare">Картинка «А или Б?» для друзей</button></div>`;
+}
+$('duelOut').onclick=e=>{
+  const v=e.target.closest('[data-vote]');
+  if(v){const k=v.dataset.vote;if(k==='r')duel.votes=[0,0];else duel.votes[+k]++;renderDuel();
+    const nb=$('duelOut').querySelector(`[data-vote="${k}"]`)||$('duelOut').querySelector('[data-vote]');if(nb)nb.focus();return;}
+  if(e.target.id==='duelShare')duelShare();};
+const loadImg=u=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=u;});
+function cover(x,im,dx,dy,dw,dh){const s=Math.max(dw/im.width,dh/im.height),w=im.width*s,h=im.height*s;x.save();x.beginPath();x.rect(dx,dy,dw,dh);x.clip();x.drawImage(im,dx+(dw-w)/2,dy+(dh-h)/2,w,h);x.restore();}
+async function duelShare(){
+  try{await document.fonts.ready;}catch(e){}
+  try{
+    const [ia,ib]=await Promise.all([loadImg(duel.urlA),loadImg(duel.urlB)]);
+    const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;
+    const x=c.getContext('2d'),T=THEMES.light,o=OCC[duel.occ];
+    x.fillStyle=T.bg;x.fillRect(0,0,W,H);x.textBaseline='top';x.fillStyle=T.ink;
+    x.font='900 74px Manrope, sans-serif';x.fillText('Битва луков',60,70);
+    x.font='600 40px Manrope, sans-serif';x.fillText('Что круче для '+o.w+'?',60,170);
+    cover(x,ia,60,260,470,700);cover(x,ib,550,260,470,700);
+    x.fillStyle='#fff';x.fillRect(60,260,84,84);x.fillRect(550,260,84,84);
+    x.fillStyle=T.ink;x.font='900 54px Manrope, sans-serif';x.textAlign='center';
+    x.fillText('А',102,276);x.fillText('Б',592,276);x.textAlign='left';
+    x.font='800 56px Manrope, sans-serif';x.fillText('Голосуй: А или Б?',60,1020);
+    if(duel.ai){x.font='600 36px Manrope, sans-serif';x.fillText(`ИИ выбрал: А ${duel.ai.pA}% / Б ${100-duel.ai.pA}%`,60,1110);}
+    x.font='600 34px Manrope, sans-serif';x.fillText(location.host||'LookMatch',60,H-90);
+    c.toBlob(async b=>{
+      const f=new File([b],'look-battle.png',{type:'image/png'});
+      if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],text:'Что круче: А или Б?'});return;}catch(e){}}
+      const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='look-battle.png';a.click();
+      $('duelSt').textContent='Картинка сохранена. Выложи её в сторис или отправь в чат и спроси друзей.';
+    });
+  }catch(e){$('duelSt').textContent='Не получилось собрать картинку.';}
+}
+
+// ---------- Парные образы ----------
+const PT={
+ y2k:{pal:['#ff9ad5','#9be7ff','#e8e8f5'],tie:'блестящие заколки или очки в одном цвете',mood:'нулевые, караоке и глянцевые журналы'},
+ grunge:{pal:['#3a3a3a','#7a5c3a','#8c2f39'],tie:'по фланелевой рубашке в одной клетке',mood:'гараж, виниловые пластинки и ночные автобусы'},
+ oldmoney:{pal:['#f3ead8','#1d2a44','#b08d57'],tie:'одинаковые кожаные ремни или часы',mood:'теннис, вино и воскресный бранч'},
+ coquette:{pal:['#ffd1dc','#fff4ea','#c97b84'],tie:'ленты или банты в одном оттенке',mood:'кофейня, пирожные и плёночная камера'},
+ darkacad:{pal:['#3b2a20','#1f3a2e','#8b6f47'],tie:'шарфы в одной клетке',mood:'библиотека, старые книги и дождь за окном'},
+ street:{pal:['#222222','#ff7b1c','#cfd8dc'],tie:'кроссовки одной расцветки',mood:'ночные улицы, маркеты и баскетбол'},
+ cottage:{pal:['#f2e2c4','#8f9779','#d98c8c'],tie:'вязаные вещи в одном цвете',mood:'пикник, ярмарка и закат'},
+ cyber:{pal:['#0d0d1a','#ff2a6d','#05d9e8'],tie:'светящиеся детали в одном неоновом цвете',mood:'ночь, неон и электронная музыка'},
+ retro:{pal:['#d9822b','#7a4e2d','#f1e3c8'],tie:'винтажные очки',mood:'блошиный рынок, пластинки и плёнка'},
+ goth:{pal:['#111111','#6b1d3a','#9aa0a6'],tie:'серебряные кольца или чокеры',mood:'ночь, свечи и готик-вечеринка'},
+ gorp:{pal:['#4f6f52','#d98324','#2d3b45'],tie:'одинаковые рюкзаки или шапки',mood:'тропа, термос и палатка'},
+ kawaii:{pal:['#ffc2e2','#c9a7ff','#a0e7e5'],tie:'парные брелки и значки',mood:'аниме-фест, десерты и фотобудка'}
+};
+$('cpA').innerHTML=$('cpB').innerHTML='<option value="">выбери стиль</option>'+keys.map(k=>`<option value="${k}">${S[k].me}</option>`).join('');
+let cpTheme=null;
+const cpCheck=()=>{$('cpGo').disabled=!($('cpA').value&&$('cpB').value);};
+$('cpA').onchange=()=>{$('cpA').dataset.touched='1';cpCheck();};
+$('cpB').onchange=cpCheck;
+function syncCouple(k){const s=$('cpA');if(!s.dataset.touched){s.value=k;cpCheck();}}
+$('cpGo').onclick=()=>{const a=$('cpA').value,b=$('cpB').value;
+  cpTheme=Object.keys(PT).map(t=>[t,cmp(a,t)+cmp(b,t)]).sort((x,y)=>y[1]-x[1])[0][0];drawCouple();};
+$('cpOut').onclick=e=>{const b=e.target.closest('[data-t]');if(!b)return;cpTheme=b.dataset.t;drawCouple();
+  const nb=$('cpOut').querySelector(`[data-t="${cpTheme}"]`);if(nb)nb.focus();};
+const figure=(top,bot,acc,hair,x)=>`<g transform="translate(${x} 0)"><rect x="34" y="144" width="52" height="96" rx="12" fill="${bot}"/><rect x="28" y="62" width="64" height="90" rx="22" fill="${top}"/><rect x="28" y="100" width="64" height="10" fill="${acc}"/><circle cx="60" cy="34" r="22" fill="#f1c9a5"/><path d="M38 34a22 22 0 0 1 44 0c-8-8-36-8-44 0z" fill="${hair}"/><rect x="30" y="238" width="26" height="10" rx="5" fill="${acc}"/><rect x="64" y="238" width="26" height="10" rx="5" fill="${acc}"/></g>`;
+function drawCouple(){
+  const a=$('cpA').value,b=$('cpB').value,t=cpTheme,P=PT[t];
+  const best=Object.keys(PT).map(k=>[k,cmp(a,k)+cmp(b,k)]).sort((x,y)=>y[1]-x[1])[0][0];
+  const fit=Math.round((cmp(a,t)+cmp(b,t))/2),comp=cmp(a,b);
+  const verdict=comp>=75?'Вы и так на одной волне, образ получится цельным.':comp>=55?'Стили разные, но общий образ красиво их соединит.':'Стили далеко друг от друга, зато вместе смотритесь эффектно. Общая деталь свяжет образ.';
+  const own=k=>S[k].wear.split(/,\s*/),th=own(t),q=enc(SEARCH[t]+' matching couple outfits');
+  const adv=(k,off)=>{const pool=th.filter(x=>!own(k).includes(x));
+    if(pool.length<2)return `ты уже в теме «${S[t].me}», усиль образ: ${th.slice(1+off,3+off).filter(Boolean).join(', ')||th[1]}.`;
+    const i=pool.length>=off+2?off:0;return `оставь «${own(k)[0]}» и добавь ${pool[i]}, ${pool[i+1]}.`;};
+  const [c0,c1,c2]=P.pal;
+  $('cpOut').classList.remove('hide');
+  $('cpOut').innerHTML=
+   `<p class="note" style="margin-bottom:8px">Общий стиль пары (★ лучше всего подходит вам обоим):</p>`+
+   `<div class="row">${Object.keys(PT).map(k=>`<button class="chip" data-t="${k}" aria-pressed="${k===t}">${S[k].me}${k===best?' ★':''}</button>`).join('')}</div>`+
+   `<div class="cpfig"><svg viewBox="0 0 300 260" role="img" aria-label="Парный образ в стиле ${S[t].me}: два силуэта в одной палитре">${figure(c0,c1,c2,c1,20)}${figure(c2,c0,c1,c0,160)}<path d="M150 86l-14-14c-10-12 6-24 14-10 8-14 24-2 14 10z" fill="${c2}"/></svg>${sw(P.pal)}</div>`+
+   `<p><b>Совместимость стилей: ${comp}%.</b> ${verdict}</p>`+
+   `<p>Общий образ «${S[t].me}» подходит вам на ${fit}%.</p>`+
+   `<p><b>Ты</b> (${S[a].me}): ${adv(a,0)}</p>`+
+   `<p><b>Партнёр</b> (${S[b].me}): ${adv(b,2)}</p>`+
+   `<p>Общая деталь: ${P.tie}.</p>`+
+   `<p class="note">Найти на Куфаре: ${kLinks(SHOP[t])}</p>`+
+   `<p>Настроение: ${P.mood}. Куда пойти: ${S[t].place}.</p>`+
+   `<p class="note">Примеры парных образов: <a href="https://www.pinterest.com/search/pins/?q=${q}" target="_blank" rel="noopener">Pinterest</a>, <a href="https://www.tiktok.com/search?q=${q}" target="_blank" rel="noopener">TikTok</a></p>`;
+}
+
+// ---------- Шопинг на Куфаре ----------
+const KUF='https://www.kufar.by/l?query=';
+const kuf=q=>KUF+enc(q);
+const SHOP={
+ alt:['кожаная куртка','тяжёлые ботинки','цепь на джинсы','клетчатая рубашка'],
+ goth:['чёрное платье','чокер','кружевная юбка','ботинки на платформе'],
+ punk:['косуха','берцы','клетчатая юбка','нашивки'],
+ sport:['спортивный костюм','худи','кроссовки','олимпийка'],
+ classic:['пальто','рубашка','брюки классические','лоферы'],
+ street:['худи оверсайз','карго штаны','кепка','кроссовки'],
+ geek:['футболка с принтом','очки','рюкзак','худи аниме'],
+ boho:['льняное платье','длинная юбка','украшения ручной работы','вязаный жилет'],
+ preppy:['поло','свитер','чиносы','лоферы'],
+ skater:['широкие джинсы','vans','футболка оверсайз','бини'],
+ tomboy:['широкие джинсы','мужская рубашка','кеды','кепка'],
+ femboy:['юбка','кроп-топ','чокер','гольфы'],
+ grunge:['фланелевая рубашка','рваные джинсы','растянутый свитер','ботинки'],
+ eboy:['полосатый лонгслив','цепь','широкие штаны','чёрные джинсы'],
+ emo:['футболка группы','узкие джинсы','ремень с заклёпками','кеды'],
+ darkacad:['твидовый пиджак','водолазка','клетчатая юбка','оксфорды'],
+ cottage:['платье в цветочек','вязаный кардиган','льняная рубашка','плетёная сумка'],
+ y2k:['низкие джинсы','топ','заколки бабочки','мини юбка'],
+ coquette:['бант','кружевная блузка','балетки','жемчуг'],
+ oldmoney:['кашемировый свитер','тренч','поло','часы'],
+ gorp:['мембранная куртка','треккинговые ботинки','флиска','туристический рюкзак'],
+ siren:['пиджак','юбка карандаш','блузка','очки'],
+ softboy:['кардиган','вязаный свитер','серебряная цепочка','светлые джинсы'],
+ cleangirl:['белая футболка','золотые серьги','трикотажный костюм','брюки'],
+ balletcore:['кофта на запах','пачка','гетры','балетки'],
+ sleaze:['узкие джинсы','кожаная куртка','блестящий топ','винтажные очки'],
+ kawaii:['розовый свитер','плюшевый брелок','гольфы','заколки'],
+ gyaru:['платформа','мини юбка','блестящая сумка','топ'],
+ cyber:['чёрные карго','ботинки','неоновая куртка','жилет'],
+ witchy:['длинная юбка','кольца','кристаллы','плащ'],
+ fairy:['воздушное платье','венок','корсет','юбка из фатина'],
+ pastelgoth:['платформы','чёрное платье','розовый кардиган','чокер'],
+ techwear:['карго штаны','куртка мембрана','нагрудная сумка','чёрная куртка'],
+ rave:['сетчатый топ','неоновые шорты','ботинки на платформе','очки'],
+ hiphop:['мешковатые джинсы','цепь','снепбек','кроссовки'],
+ retro:['клёш','винтажная куртка','винтажные очки','вельветовые брюки'],
+ normcore:['джинсы','белые кеды','базовая футболка','куртка'],
+ mobwife:['шуба','леопардовый принт','золотые украшения','тёмные очки'],
+ moto:['мотокуртка','ботинки','перчатки','чёрные джинсы']
+};
+const kLinks=(list,cls)=>list.map(t=>`<a class="${cls||''}" href="${kuf(t)}" target="_blank" rel="noopener">${t}</a>`).join(', ');
+const kChips=list=>list.map(t=>`<a class="chip" href="${kuf(t)}" target="_blank" rel="noopener">${t}</a>`).join('');
+$('shopSel').innerHTML='<option value="">выбери стиль</option>'+keys.map(k=>`<option value="${k}">${S[k].me}</option>`).join('');
+function drawShop(){const k=$('shopSel').value;
+  $('shopOut').innerHTML=k?`<p class="note" style="margin-bottom:8px">Что искать для стиля «${S[k].me}»:</p><div class="row">${kChips(SHOP[k])}</div><p class="note">Откроется поиск на Куфаре. Размер, цену и город выбери фильтрами на самом сайте.</p>`:'';}
+$('shopSel').onchange=()=>{$('shopSel').dataset.touched='1';drawShop();};
+function syncShop(k){const s=$('shopSel');if(!s.dataset.touched){s.value=k;drawShop();}}
+const shopFree=()=>{const q=$('shopQ').value.trim();if(q)window.open(kuf(q),'_blank','noopener');};
+$('shopGo').onclick=shopFree;
+$('shopQ').onkeydown=e=>{if(e.key==='Enter')shopFree();};
+
+// ---------- Секретный вайб (Mystery Match) ----------
+const hash=t=>{let h=2166136261;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;};
+const mkRng=a=>()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^(a>>>15),1|a);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;};
+const MQ=[
+ ['Кто кого заставит слушать рэп в 3 часа ночи','Ты заставишь партнёра','Партнёр заставит тебя'],
+ ['Кто кого уговорит на караоке до закрытия','Ты уговоришь партнёра','Партнёр уговорит тебя'],
+ ['Кто кого утащит в поход с палаткой','Ты утащишь партнёра','Партнёр утащит тебя'],
+ ['Кто кого заставит посмотреть «ещё одну серию»','Ты заставишь партнёра','Партнёр заставит тебя'],
+ ['Кто кого разбудит песней в семь утра','Ты разбудишь партнёра','Партнёр разбудит тебя'],
+ ['Кто кого научит танцевать на кухне','Ты научишь партнёра','Партнёр научит тебя'],
+ ['Кто будет выбирать фильм сорок минут','Ты','Партнёр'],
+ ['Кто первым скажет «давай закажем пиццу»','Ты','Партнёр'],
+ ['Кто съест последний кусок без спроса','Ты','Партнёр'],
+ ['Кто забудет зонт, а промокнут оба','Ты','Партнёр'],
+ ['Кто будет спорить с навигатором','Ты','Партнёр'],
+ ['Кто сделает сорок семь дублей одной фотографии','Ты','Партнёр'],
+ ['Кто зайдёт в магазин «только за хлебом» и выйдет с пятью пакетами','Ты','Партнёр'],
+ ['Кто первым уснёт на середине кино','Ты','Партнёр'],
+ ['Кто первым напишет «ты где?»','Ты','Партнёр'],
+ ['Кто заведёт кота без предупреждения','Ты','Партнёр'],
+ ['Кто выучит любимый трек другого наизусть','Ты','Партнёр'],
+ ['Кто придёт на свидание на день раньше, перепутав даты','Ты','Партнёр'],
+ ['Кто станет диджеем на общей кухне','Ты','Партнёр']
+];
+const MV=['Хаос + план на неделю','Ночная сова + жаворонок с будильником','Саундтрек на два наушника','Двое против одного последнего куска пиццы','Спор про плейлист, который никто не выиграет','Команда «я только посмотрю»','Режиссёр и оператор на сорок семь дублей','Тот, кто опаздывает, + тот, кто приходит заранее','Диджей на кухне + слушатель в халате','Пара, которая выбирает фильм дольше, чем смотрит','Два штурмана и один навигатор','Один за мемы, другой за здравый смысл'];
+const MF=['Шанс, что вы поспорите из-за плейлиста','Шанс, что третье свидание пройдёт в караоке','Шанс, что вы вместе уснёте на фильме','Шанс, что у вас появится мем, непонятный остальным','Шанс, что вы поссоритесь из-за пиццы и помиритесь за минуту','Шанс, что один из вас заведёт кота','Шанс, что вы купите одинаковые наушники'];
+let mysSalt=0;
+function rollMyst(){
+  const a=$('mysA').value.trim(),b=$('mysB').value.trim(),named=!!(a||b);
+  const seed=named?hash(a.toLowerCase()+'|'+b.toLowerCase()+'|'+mysSalt):(Math.random()*4294967296)>>>0;
+  const r=mkRng(seed),pick=arr=>arr[Math.floor(r()*arr.length)];
+  const qs=MQ.slice();for(let i=qs.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[qs[i],qs[j]]=[qs[j],qs[i]];}
+  const rows=qs.slice(0,3).map(([q,wa,wb])=>({q,w:r()<.5?wa:wb,p:51+Math.floor(r()*42)}));
+  window._myst={vibe:pick(MV),k:pick(keys),rows,fc:{t:pick(MF),p:8+Math.floor(r()*91)},names:[a,b].filter(Boolean).join(' + ')};
+}
+const firstSent=t=>t.split('. ')[0].replace(/\.$/,'')+'.';
+function mysRender(open){
+  const m=window._myst,o=$('mysOut');if(!m){o.innerHTML='';return;}
+  if(!open){o.innerHTML='<button class="seal" id="mysSeal"><span class="q" aria-hidden="true">?</span>Секретный вайб запечатан<small>Нажми, чтобы вскрыть конверт</small></button>';return;}
+  const gi=gender==='f'?0:1,k=m.k,q=enc(SEARCH[k]+' outfit'+(gi?' men':' women')),d=i=>`style="animation-delay:${(.2+i*.35).toFixed(2)}s"`;
+  o.innerHTML=`<div class="mys"><p class="note" style="margin:0">Твой секретный вайб${m.names?': '+esc(m.names):''}</p><h3 id="mysTitle" tabindex="-1">${m.vibe}</h3>`+
+   `<p class="rv" ${d(0)}><b>Партнёр по вайбу: ${S[k].n[gi]}</b><br>${firstSent(DESC[k])} Куда пойти: ${placeLinks(k)}.</p>`+
+   m.rows.map((r,i)=>`<div class="mrow rv" ${d(i+1)}><div class="mq">${r.q}</div><div class="mw">${r.w}, ${r.p}%</div><div class="mb"><i style="width:${r.p}%"></i></div></div>`).join('')+
+   `<p class="rv" ${d(4)}>${m.fc.t}: <b>${m.fc.p}%</b></p>`+
+   `<p class="note rv" ${d(5)}>Примеры образов: <a href="https://www.pinterest.com/search/pins/?q=${q}" target="_blank" rel="noopener">Pinterest</a>, <a href="https://www.tiktok.com/search?q=${q}" target="_blank" rel="noopener">TikTok</a></p>`+
+   `<div class="row rv" ${d(5)}><button class="go" id="mysCard">Карточка для сторис</button><button id="mysCouple">Парные образы в этом стиле</button><button id="mysAgain">Вытянуть заново</button></div></div>`;
+  const t=$('mysTitle');if(t)t.focus({preventScroll:true});
+}
+$('mysGo').onclick=()=>{mysSalt=0;rollMyst();mysRender(false);$('mysSeal').focus();if(stS.mode==='mystery')stDraw();};
+$('mysOut').onclick=e=>{
+  const id=(e.target.closest('button')||{}).id;
+  if(id==='mysSeal'){mysRender(true);if(stS.mode==='mystery')stDraw();}
+  else if(id==='mysAgain'){mysSalt++;rollMyst();mysRender(false);$('mysSeal').focus();if(stS.mode==='mystery')stDraw();}
+  else if(id==='mysCouple'){const k=window._myst.k;$('cpB').value=k;cpCheck();$('couple').scrollIntoView({behavior:'smooth',block:'start'});if(!$('cpGo').disabled)$('cpGo').click();}
+  else if(id==='mysCard'){stSetMode('mystery');$('stories').scrollIntoView({behavior:'smooth',block:'start'});}
+};
+
+// ---------- Сторис-студия ----------
+const FMT={story:{w:1080,h:1920,n:'Сторис 9:16'},post:{w:1080,h:1350,n:'Пост 4:5'},sq:{w:1080,h:1080,n:'Квадрат 1:1'}};
+const STFONT={
+ unb:{n:'Unbounded',fam:'Unbounded',w:800,st:'',sc:.8,lh:1.1},
+ serif:{n:'Playfair',fam:'Playfair Display',w:900,st:'italic',sc:1.05,lh:1.04},
+ hand:{n:'Caveat',fam:'Caveat',w:700,st:'',sc:1.4,lh:.98},
+ pixel:{n:'Press Start',fam:'Press Start 2P',w:400,st:'',sc:.5,lh:1.4},
+ mono:{n:'Rubik Mono',fam:'Rubik Mono One',w:400,st:'',sc:.7,lh:1.12,up:1},
+ clean:{n:'Manrope',fam:'Manrope',w:800,st:'',sc:1,lh:1.06}
+};
+const STBG={
+ sunset:{n:'Закат',g:['#ffc371','#ff8a65','#ff6f91'],b:[[.85,.1,.5,'rgba(255,245,200,.6)'],[.05,.95,.55,'rgba(200,40,110,.35)']],ink:'#2a1020',acc:'#2a1020',ci:'#ffe9d6',hi:'#2a1020',gr:.1},
+ neon:{n:'Неон',g:['#0d0221','#240b52','#0b3d91'],b:[[.15,.2,.55,'rgba(255,42,109,.55)'],[.95,.8,.55,'rgba(5,217,232,.45)']],ink:'#ffffff',acc:'#ff2a6d',ci:'#ffffff',hi:'#05d9e8',gr:.12},
+ film:{n:'Плёнка',g:['#ecdcbc','#dcc296','#bd9163'],b:[[.8,.15,.45,'rgba(255,255,255,.4)'],[.1,.9,.45,'rgba(120,70,30,.35)']],ink:'#2b1d12',acc:'#9a3b1d',ci:'#fff3dc',hi:'#9a3b1d',gr:.35},
+ gum:{n:'Жвачка',g:['#ffd9ec','#ff9ccf','#b794ff'],b:[[.1,.1,.5,'rgba(255,255,255,.6)'],[.9,.9,.5,'rgba(120,60,200,.4)']],ink:'#3b1346',acc:'#e8368f',ci:'#ffffff',hi:'#7a1fa2',gr:.1},
+ mint:{n:'Мята',g:['#e3fff3','#8be8c5','#3aa88a'],b:[[.9,.1,.5,'rgba(255,255,255,.6)'],[.1,.9,.5,'rgba(10,90,80,.35)']],ink:'#0d3b30',acc:'#0f8f6c',ci:'#ffffff',hi:'#0d6b50',gr:.1},
+ night:{n:'Ночь',g:['#14141f','#1f1f33','#2d2347'],b:[[.85,.15,.5,'rgba(201,167,255,.3)'],[.1,.85,.5,'rgba(255,123,107,.22)']],ink:'#f4f0ff',acc:'#c9a7ff',ci:'#14141f',hi:'#ffb3a6',gr:.14}
+};
+const ST_MODES=[['style','Мой стиль'],['match','Моя пара'],['mystery','Секретный вайб'],['custom','Своя надпись']];
+const stS={mode:'style',fmt:'story',bg:'sunset',font:'unb',handle:''};
+try{const o=JSON.parse(localStorage.getItem('lmstory')||'{}');if(FMT[o.fmt])stS.fmt=o.fmt;if(STBG[o.bg])stS.bg=o.bg;if(STFONT[o.font])stS.font=o.font;if(typeof o.handle==='string')stS.handle=o.handle.slice(0,30);}catch(e){}
+const stPersist=()=>{try{localStorage.setItem('lmstory',JSON.stringify({fmt:stS.fmt,bg:stS.bg,font:stS.font,handle:stS.handle}));}catch(e){}};
+const fontStr=(F,s)=>`${F.st?F.st+' ':''}${F.w} ${s}px "${F.fam}", Manrope, sans-serif`;
+
+$('stMode').innerHTML=ST_MODES.map(([k,n])=>`<button class="chip" data-m="${k}" aria-pressed="${stS.mode===k}">${n}</button>`).join('');
+$('stFont').innerHTML=Object.entries(STFONT).map(([k,f])=>`<button class="chip" data-f="${k}" aria-pressed="${stS.font===k}" style="font-family:'${f.fam}',Manrope,sans-serif;font-weight:${f.w}${f.st?';font-style:'+f.st:''}">${f.n}</button>`).join('');
+$('stBg').innerHTML=Object.entries(STBG).map(([k,b])=>`<button class="swb" data-b="${k}" aria-pressed="${stS.bg===k}" aria-label="Фон «${b.n}»" title="${b.n}" style="background:linear-gradient(160deg,${b.g.join(',')})"></button>`).join('');
+$('stFmt').innerHTML=Object.entries(FMT).map(([k,f])=>`<button class="chip" data-t="${k}" aria-pressed="${stS.fmt===k}">${f.n}</button>`).join('');
+$('stHandle').value=stS.handle;
+function stPick(box,attr,key){$(box).onclick=e=>{const b=e.target.closest('['+attr+']');if(!b)return;
+  stS[key]=b.getAttribute(attr);$(box).querySelectorAll('['+attr+']').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  $('stTextWrap').classList.toggle('hide',stS.mode!=='custom');stPersist();stDraw();};}
+stPick('stMode','data-m','mode');stPick('stFont','data-f','font');stPick('stBg','data-b','bg');stPick('stFmt','data-t','fmt');
+function stSetMode(m){stS.mode=m;$('stMode').querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.m===m));$('stTextWrap').classList.toggle('hide',m!=='custom');stDraw();}
+$('stText').oninput=()=>stDraw();
+$('stHandle').oninput=()=>{stS.handle=$('stHandle').value.trim();stPersist();stDraw();};
+
+function stData(mode){
+  const gi=gender==='f'?0:1,nm=k=>S[k].n[gi];
+  if(mode==='custom')return{label:'Мой вайб',head:$('stText').value.trim()||'Мой вайб',rows:[]};
+  if(mode==='mystery'){
+    let m=window._myst,demo='';
+    if(!m){demo='Это пример. Вытяни секретный вайб выше, и карточка обновится.';
+      m={vibe:MV[2],k:'retro',rows:[{q:MQ[0][0],w:MQ[0][1],p:73},{q:MQ[6][0],w:MQ[6][2],p:61},{q:MQ[10][0],w:MQ[10][1],p:58}],names:''};}
+    return{label:'Секретный вайб',head:m.vibe,sub:'Партнёр по вайбу: '+nm(m.k),sticker:{t:'?',s:'секрет'},demo,
+      rows:m.rows.map(r=>({kind:'duel',l:r.q,r:r.w,p:r.p}))};}
+  let mine=window._mine,sc=window._scores,demo='';
+  if(!mine||!sc){demo='Это пример. Пройди тест или выбери стиль выше, и здесь появится твой результат.';
+    mine=[['y2k',.6],['coquette',.4]];
+    sc=keys.map(k=>[k,Math.min(97,Math.round(.6*cmp('y2k',k)+.4*cmp('coquette',k)))]).sort((a,b)=>b[1]-a[1]);}
+  if(mode==='match'){const [k,v]=sc[0];
+    return{label:'Моя идеальная пара',head:nm(k),num:v,sub:firstSent(DESC[k]),demo,rowsT:'Ещё подходят',rows:sc.slice(1,3).map(([a,b])=>({kind:'bar',l:nm(a),p:b}))};}
+  return{label:'Мой стиль',head:mine.map(([k])=>S[k].me).join(' + '),sub:firstSent(DESC[mine[0][0]]),demo,rowsT:'Кто мне подходит',
+    rows:sc.slice(0,3).map(([k,v])=>({kind:'bar',l:nm(k),p:v}))};
+}
+function rr(c,x,y,w,h,r){r=Math.min(r,h/2,w/2);c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+function wrapT(c,text,maxW){const words=text.split(/\s+/).filter(Boolean),lines=[];let cur='';
+  for(const w of words){const t=cur?cur+' '+w:w;if(!cur||c.measureText(t).width<=maxW)cur=t;else{lines.push(cur);cur=w;}}
+  if(cur)lines.push(cur);return lines;}
+function fitText(c,text,F,maxW,maxLines,start,min){let s=start,lines=[];
+  for(;s>=min;s-=4){c.font=fontStr(F,s);lines=wrapT(c,text,maxW);if(lines.length<=maxLines&&lines.every(l=>c.measureText(l).width<=maxW))return{s,lines};}
+  s=min;c.font=fontStr(F,s);return{s,lines:wrapT(c,text,maxW).slice(0,maxLines)};}
+let grainTile=null;
+function bgPaint(x,W,H,B){
+  const g=x.createLinearGradient(0,0,W*.35,H);B.g.forEach((c,i)=>g.addColorStop(i/(B.g.length-1),c));x.fillStyle=g;x.fillRect(0,0,W,H);
+  B.b.forEach(([bx,by,br,c])=>{const r=br*Math.max(W,H),rg=x.createRadialGradient(bx*W,by*H,0,bx*W,by*H,r);rg.addColorStop(0,c);rg.addColorStop(1,c.replace(/[\d.]+\)$/,'0)'));x.fillStyle=rg;x.fillRect(0,0,W,H);});
+  if(!grainTile){grainTile=document.createElement('canvas');grainTile.width=grainTile.height=160;const t=grainTile.getContext('2d'),d=t.createImageData(160,160);
+    for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255;}t.putImageData(d,0,0);}
+  x.save();x.globalAlpha=B.gr;x.globalCompositeOperation='overlay';x.fillStyle=x.createPattern(grainTile,'repeat');x.fillRect(0,0,W,H);x.restore();
+}
+function spark(x,cx,cy,r){x.beginPath();for(let i=0;i<8;i++){const a=i*Math.PI/4-Math.PI/2,d=i%2?r*.28:r;x.lineTo(cx+Math.cos(a)*d,cy+Math.sin(a)*d);}x.closePath();x.fill();}
+function paintStory(cv,M,B,F,d){
+  const x=cv.getContext('2d'),W=M.w,H=M.h,story=stS.fmt==='story',P=84,safeT=story?210:96,safeB=story?300:96,maxW=W-2*P;
+  const footY=H-safeB-44,limit=footY-56,top=safeT+120;
+  x.clearRect(0,0,W,H);bgPaint(x,W,H,B);
+  x.save();x.strokeStyle=B.ink;x.globalAlpha=.16;x.lineWidth=10;x.beginPath();x.arc(W*.98,H*.86,W*.5,0,7);x.stroke();x.restore();
+  if(story){x.save();x.fillStyle=B.ink;x.globalAlpha=.2;spark(x,W*.82,H-150,110);x.restore();}
+  const body=(c,y)=>{
+    c.textBaseline='top';c.textAlign='left';
+    c.font='700 44px Manrope, sans-serif';c.fillStyle=B.ink;c.globalAlpha=.8;c.fillText(d.label,P,y);c.globalAlpha=1;y+=76;
+    const hs=d.num!==undefined?(story?112:96):(stS.mode==='custom'?170:(story?136:112)),txt=F.up?d.head.toUpperCase():d.head;
+    const fit=fitText(c,txt,F,maxW,stS.fmt==='sq'?3:4,hs*F.sc,36);
+    c.font=fontStr(F,fit.s);c.fillStyle=B.ink;fit.lines.forEach((l,i)=>c.fillText(l,P,y+i*fit.s*F.lh));y+=fit.lines.length*fit.s*F.lh+24;
+    if(d.num!==undefined){const ns=(story?250:190)*Math.min(1,F.sc*1.1);c.font=fontStr(F,ns);c.fillStyle=B.hi;c.fillText(d.num+'%',P,y);y+=ns*F.lh+10;}
+    if(d.sub){c.font='600 42px Manrope, sans-serif';c.fillStyle=B.ink;c.globalAlpha=.92;const ls=wrapT(c,d.sub,maxW).slice(0,3);ls.forEach((l,i)=>c.fillText(l,P,y+i*58));c.globalAlpha=1;y+=ls.length*58+34;}
+    if(d.rows&&d.rows.length&&y+(d.rowsT?76:0)+(d.rows[0].kind==='duel'?202:124)<=limit){
+      if(d.rowsT){c.font='800 42px Manrope, sans-serif';c.fillStyle=B.ink;c.fillText(d.rowsT,P,y);y+=76;}
+      for(const r of d.rows){
+        if(r.kind==='duel'){
+          c.font='700 36px Manrope, sans-serif';const ls=wrapT(c,r.l,maxW).slice(0,2),h=ls.length*48+12+64+30;if(y+h>limit)break;
+          c.fillStyle=B.ink;ls.forEach((l,i)=>c.fillText(l,P,y+i*48));y+=ls.length*48+12;
+          const t=r.r+', '+r.p+'%';c.font='800 34px Manrope, sans-serif';const tw=Math.min(maxW,c.measureText(t).width+44);
+          c.fillStyle=B.acc;rr(c,P,y,tw,64,32);c.fill();c.fillStyle=B.ci;c.fillText(t,P+22,y+14);y+=64+30;
+        }else{
+          if(y+124>limit)break;
+          c.font='700 38px Manrope, sans-serif';c.fillStyle=B.ink;c.fillText(r.l,P,y);c.textAlign='right';c.fillText(r.p+'%',W-P,y);c.textAlign='left';y+=58;
+          c.fillStyle=B.ink;c.globalAlpha=.16;rr(c,P,y,maxW,26,13);c.fill();c.globalAlpha=1;
+          c.fillStyle=B.acc;rr(c,P,y,Math.max(26,maxW*r.p/100),26,13);c.fill();y+=26+40;
+        }
+      }
+    }
+    return y;};
+  const end=body(document.createElement('canvas').getContext('2d'),top),off=Math.max(0,Math.min(260,(limit-end)*.4));
+  body(x,top+off);
+  x.textBaseline='top';x.textAlign='left';x.fillStyle=B.ink;x.font='800 40px Manrope, sans-serif';x.fillText('LookMatch',P,safeT);
+  if(d.sticker){x.save();x.translate(W-P-82,safeT+44);x.rotate(.2);x.fillStyle=B.acc;x.beginPath();x.arc(0,0,82,0,7);x.fill();
+    x.fillStyle=B.ci;x.textAlign='center';x.font='800 64px Manrope, sans-serif';x.fillText(d.sticker.t,0,-44);x.font='700 22px Manrope, sans-serif';x.fillText(d.sticker.s,0,24);x.restore();}
+  x.fillStyle=B.ink;x.globalAlpha=.85;x.font='700 34px Manrope, sans-serif';x.textBaseline='top';
+  const hd=stS.handle||location.host||'';if(hd)x.fillText(hd,P,footY);
+  x.textAlign='right';x.fillText('найди свою пару',W-P,footY);x.textAlign='left';x.globalAlpha=1;
+}
+let stTok=0;
+async function stDraw(){
+  const tok=++stTok,F=STFONT[stS.font];
+  try{await Promise.all([document.fonts.load(fontStr(F,60),'Абв Abc 123'),document.fonts.load('800 40px Manrope','Абв Abc'),document.fonts.load('700 40px Manrope','Абв Abc'),document.fonts.load('600 40px Manrope','Абв Abc')]);}catch(e){}
+  if(tok!==stTok)return;
+  const cv=$('storyCv'),M=FMT[stS.fmt],d=stData(stS.mode);
+  if(cv.width!==M.w||cv.height!==M.h){cv.width=M.w;cv.height=M.h;}
+  paintStory(cv,M,STBG[stS.bg],F,d);
+  cv.setAttribute('aria-label','Карточка: '+d.label+'. '+d.head);
+  $('stDemo').textContent=d.demo||'';
+}
+async function stBlob(){await stDraw();return new Promise(r=>$('storyCv').toBlob(r,'image/png'));}
+const stDownload=b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='lookmatch-card.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);};
+$('stSaveBtn').onclick=async()=>{const b=await stBlob();if(!b)return;stDownload(b);$('stNote').textContent='Картинка сохранена. Добавь её в Instagram Stories или TikTok из галереи.';};
+$('stShareBtn').onclick=async()=>{const b=await stBlob();if(!b)return;
+  const f=new File([b],'lookmatch-card.png',{type:'image/png'});
+  if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],text:'LookMatch'});return;}catch(e){if(e&&e.name==='AbortError')return;}}
+  stDownload(b);$('stNote').textContent='Из браузера нельзя отправить картинку напрямую, поэтому она сохранена. Добавь её в Stories из галереи.';};
+stDraw();
+
+// ---------- запуск ----------
+// Имя Телеграм-бота без @, например 'lookmatch_style_bot'. Пока пусто, ссылка на бота скрыта.
+const TG_BOT='';
+(()=>{let inTg=false;try{inTg=!!Telegram.WebApp.initData;}catch(e){}
+  if(!/^[A-Za-z][A-Za-z0-9_]{4,31}$/.test(TG_BOT)||inTg)return;
+  $('tgBotLink').href='https://t.me/'+TG_BOT+'?start=site';$('tgBotRow').classList.remove('hide');})();
+init();
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
